@@ -1,6 +1,5 @@
 //ArtifactID Service
 
-
 const fs = require('fs');
 	
 function artifactID(filePath)
@@ -32,3 +31,5 @@ function artifactID(filePath)
 	}
 	return (sum + "-"+"L"+count+".txt");
 }
+
+module.exports={artifactID};

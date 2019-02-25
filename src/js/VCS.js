@@ -141,3 +141,5 @@ VCS.prototype.commit = function() {
         }
     });
 };
+
+module.exports=VCS;
