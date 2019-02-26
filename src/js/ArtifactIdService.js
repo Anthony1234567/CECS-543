@@ -29,7 +29,7 @@ function artifactID(filePath)
 			count++;
 		}
 	}
-	return (sum + "-"+"L"+count+".txt");
+	return (sum + "-"+"L"+count);
 }
 
 module.exports={artifactID};
