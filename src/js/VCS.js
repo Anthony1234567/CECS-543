@@ -4,6 +4,54 @@
  */
 // Required modules
 const fs = require('fs'); // source: https://nodejs.org/api/fs.html
+const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
+const manifest = require('./Manifest'); // For tracking
+
+/*
+ * @description: Initialization method. 
+ *               Creates vcs hidden subdirectory for tracking changes
+ *               Copies main directory contents into vcs and creates artifact structure
+ */ 
+VCS.prototype.init = function() { 
+    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
+        // TODO: Implement some error handling
+        if (error) { throw error; }
+
+        if (directoryContents.find((file) => file.name === this.vcsFileName)) {
+            console.error('Init failed: This directory has already been initialized.');
+        } else {
+            console.log('Initializing repository...');
+
+            const targetRoot = this.sourceRoot + '/' + this.vcsFileName;
+
+            fs.mkdir(targetRoot, (error) => {
+                // TODO: Implement some error handling
+                if (error) { throw error; }
+
+                this.breadthFirstTraverse(this.sourceRoot, targetRoot, true);
+            });
+        }
+    });
+};
+
+/*
+ * @description: Commit method. 
+ *               Creates vcs hidden subdirectory for tracking changes
+ */ 
+VCS.prototype.commit = function() {
+    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
+        // TODO: Implement some error handling
+        if (error) { throw error; }
+
+        if (!directoryContents.find((file) => file.name === this.vcsFileName)) {
+            console.error('Commit failed: Directory has not been initialized.');
+        } else {
+            console.log('Committing changes...');
+
+            this.breadthFirstTraverse(this.sourceRoot, this.sourceRoot + '/' + this.vcsFileName, false);
+        }
+    });
+};
 
 function VCS(sourceRoot) {
     // VSC file [target] name
@@ -60,13 +108,11 @@ function VCS(sourceRoot) {
                         }
                     } else {
                         console.log('file: ' + fileOrDirectory.name);
-                        
-                        const directoryName = fileOrDirectory.name.replace(/\.[^/.]+$/, ''); // Remove file extension
+
+                        const fileName = fileOrDirectory.name; // Remove file extension
                         const sourceFile = sourceRoot + '/' + fileOrDirectory.name;
-                        const targetDirectory = targetRoot + '/' + directoryName;
-                        const targetArtifact = targetRoot + '/' + directoryName + (fullCopy 
-                                                                                ? '/ArtifactId-Init.txt'
-                                                                                : '/ArtifactId-Commit.txt'); // Build artifactId
+                        const targetDirectory = targetRoot + '/' + fileName;
+                        const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
                         if(fullCopy) {
                             // Create directory with name of file
@@ -82,11 +128,17 @@ function VCS(sourceRoot) {
                                 });
                             });
                         } else {
-                            // Move file into new directory
-                            // Replace file name with artifactId    
-                            fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
-                                // TODO: Implement some error handling
-                                if (error) { throw error; }
+                            fs.access(targetArtifact, (isFileDNE) => {
+                                if (isFileDNE) {
+                                    // Move file into new directory
+                                    // Replace file name with artifactId    
+                                    fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
+                                        // TODO: Implement some error handling
+                                        if (error) { throw error; }
+                                    });
+                                } else {
+                                    console.log('Target Artifact already exists for this version of source: ' + sourceFile);
+                                }
                             });
                         }
                     }
@@ -96,50 +148,4 @@ function VCS(sourceRoot) {
     }
 }
 
-/*
- * @description: Initialization method. 
- *               Creates vcs hidden subdirectory for tracking changes
- *               Copies main directory contents into vcs and creates artifact structure
- */ 
-VCS.prototype.init = function() { 
-    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
-        // TODO: Implement some error handling
-        if (error) { throw error; }
-
-        if (directoryContents.find((file) => file.name === this.vcsFileName)) {
-            console.error('Init failed: This directory has already been initialized.');
-        } else {
-            console.log('Initializing repository...');
-
-            const targetRoot = this.sourceRoot + '/' + this.vcsFileName;
-
-            fs.mkdir(targetRoot, (error) => {
-                // TODO: Implement some error handling
-                if (error) { throw error; }
-
-                this.breadthFirstTraverse(this.sourceRoot, targetRoot, true);
-            });
-        }
-    });
-};
-
-/*
- * @description: Commit method. 
- *               Creates vcs hidden subdirectory for tracking changes
- */ 
-VCS.prototype.commit = function() {
-    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
-        // TODO: Implement some error handling
-        if (error) { throw error; }
-
-        if (!directoryContents.find((file) => file.name === this.vcsFileName)) {
-            console.error('Commit failed: Directory has not been initialized.');
-        } else {
-            console.log('Committing changes...');
-
-            this.breadthFirstTraverse(this.sourceRoot, this.sourceRoot + '/' + this.vcsFileName, false);
-        }
-    });
-};
-
-module.exports=VCS;
+module.exports = VCS;
