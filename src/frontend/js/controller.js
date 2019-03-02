@@ -1,5 +1,9 @@
+//Library
 const request = require('request').defaults({ baseUrl: 'http://localhost:3000/', json: true })
 
+/**
+ * Make to http call to create a new repository.
+ */
 function create() {
 	request.post('/create', {
 		body: {
@@ -17,6 +21,9 @@ function create() {
 	})
 }
 
+/**
+ * Make a http call to create a new commit for a given repository.
+ */
 function commit() {
 	request.post('/commit', {
 		body: {
