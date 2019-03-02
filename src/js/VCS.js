@@ -12,7 +12,7 @@ const manifest = require('./Manifest'); // For tracking
  *               Creates vcs hidden subdirectory for tracking changes
  *               Copies main directory contents into vcs and creates artifact structure
  */ 
-VCS.prototype.init = function() { 
+VCS.prototype.init = function() {
     fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
         // TODO: Implement some error handling
         if (error) { throw error; }
@@ -54,9 +54,9 @@ VCS.prototype.commit = function() {
 };
 
 function VCS(sourceRoot) {
-    // VSC file [target] name
-    this.vcsFileName = '.psa';
-    this.sourceRoot = sourceRoot;
+    this.sourceRoot = sourceRoot; 
+    this.vcsFileName = '.psa'; // VSC file [target] name
+    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' + 'Manifest.json');
 
     /*
     * @description: Implements simplified Breadth-first search recursive 
@@ -97,7 +97,7 @@ function VCS(sourceRoot) {
                         const target = targetRoot + '/' + fileOrDirectory.name;
 
                         if(fullCopy) {
-                            fs.copyFile(source, target, fs.constants.COPYFILE_EXCL, (error) => {
+                            fs.mkdir(target, (error) => {
                                 // TODO: Implement some error handling
                                 if (error) { throw error; }
 
@@ -125,6 +125,8 @@ function VCS(sourceRoot) {
                                 fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                     // TODO: Implement some error handling
                                     if (error) { throw error; }
+
+                                    this.manifest.createEntry(fileName, [ targetArtifact ]);
                                 });
                             });
                         } else {
@@ -135,9 +137,11 @@ function VCS(sourceRoot) {
                                     fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                         // TODO: Implement some error handling
                                         if (error) { throw error; }
+
+                                        this.manifest.addArtifactsToEntry(fileName, [ targetArtifact ]);
                                     });
                                 } else {
-                                    console.log('Target Artifact already exists for this version of source: ' + sourceFile);
+                                    console.log('Target Artifact already exists for this version of source: ' + sourceFile + '. No new artifact will be created for this file.');
                                 }
                             });
                         }

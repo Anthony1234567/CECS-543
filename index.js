@@ -1,7 +1,7 @@
 //Import libraries 
 const express = require('express');
 const path = require('path');
-const VCS = new (require('./src/js/VCS'))
+const VCS = require('./src/js/VCS')
 
 //Initalize varaibles
 const app = express();
@@ -19,10 +19,12 @@ app.get('/', (req, res, next) => {
 app.post('/create', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        //VCS does something here...
+        console.log('source directory: ' + sourceDirectory);
+        new VCS(sourceDirectory).init();
 
         res.status(201).end();
     } catch (err) {
+        console.log('error: ' + err);
         res.status(400).end();
     }
 })
@@ -31,7 +33,7 @@ app.post('/create', (req, res, next) => {
 app.post('/commit', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        //VCS does something here...
+        new VCS(sourceDirectory).commit();
 
         res.status(200).end();
     } catch (err) {
