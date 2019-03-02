@@ -4,7 +4,9 @@
   "description": "The first version of a version control for CECS 543.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node index.js",
+    "build":"browserify .\\src\\frontend\\js\\controller.js --standalone Controller > .\\src\\frontend\\js\\controllerB.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +19,8 @@
   },
   "homepage": "https://github.com/Anthony1234567/CECS543_Project-1#readme",
   "dependencies": {
-    "express": "^4.16.4"
-  }
+    "express": "^4.16.4",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {}
 }
