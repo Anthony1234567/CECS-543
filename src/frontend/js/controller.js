@@ -1,3 +1,12 @@
+/**
+* @author: Prateechi Singh
+* @email: prateechi.singh@student.csulb.edu
+* @description: This is the javascript file for the controller.html and it contains functionalites necessary
+* for such html file. However, this file will not work in the browser as it still needs to go through conversion process
+* to make it browser compatible.  
+*/
+
+
 //Library
 const request = require('request').defaults({ baseUrl: 'http://localhost:3000/', json: true })
 

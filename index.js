@@ -1,3 +1,11 @@
+/**
+* @author: Chandandeep Thind, Sotheanith Sok, Anthony Martinez 
+* @email: chandandeep.thind@student.csulb.edu, sotheanith.sok@student.csulb.edu, anthony.martinez02@student.csulb.edu 
+* @description: This module contains Express routing services provided by this application. It is reponsible
+* for serving necessary files and handling incoming HTTP requests. 
+*/
+
+
 //Import libraries 
 const express = require('express');
 const path = require('path');

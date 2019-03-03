@@ -1,7 +1,11 @@
-/*
- * Class: VCS
- * @description: Implements version control methods (init, commit, etc)
- */
+/**
+* @author: Anthony Martinez
+* @email: anthony.martinez02@student.csulb.edu
+* @description: This module contains the implementation of version control system functinoalities 
+* including intitalization, commit, and so on. It uses functionalities provided by the manifest and ArtifactIdService moduels.
+*/
+
+
 // Required modules
 const fs = require('fs'); // source: https://nodejs.org/api/fs.html
 const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
