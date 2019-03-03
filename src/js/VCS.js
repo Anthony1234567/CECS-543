@@ -6,6 +6,7 @@
 const fs = require('fs'); // source: https://nodejs.org/api/fs.html
 const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
 const manifest = require('./Manifest'); // For tracking
+const crypto = require('crypto'); // Generating commit Id
 
 /*
  * @description: Initialization method. 
@@ -57,6 +58,7 @@ function VCS(sourceRoot) {
     this.sourceRoot = sourceRoot; 
     this.vcsFileName = '.psa'; // VSC file [target] name
     this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' + 'Manifest.json');
+    this.commitId = crypto.randomBytes(8).toString('hex');
 
     /*
     * @description: Implements simplified Breadth-first search recursive 
@@ -114,6 +116,8 @@ function VCS(sourceRoot) {
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
+                        this.manifest.addArtifactToEntry(this.commitId, targetArtifact);
+                        
                         if(fullCopy) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {
@@ -125,8 +129,6 @@ function VCS(sourceRoot) {
                                 fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                     // TODO: Implement some error handling
                                     if (error) { throw error; }
-
-                                    this.manifest.createEntry(fileName, [ targetArtifact ]);
                                 });
                             });
                         } else {
@@ -137,8 +139,6 @@ function VCS(sourceRoot) {
                                     fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                         // TODO: Implement some error handling
                                         if (error) { throw error; }
-
-                                        this.manifest.addArtifactsToEntry(fileName, [ targetArtifact ]);
                                     });
                                 } else {
                                     console.log('Target Artifact already exists for this version of source: ' + sourceFile + '. No new artifact will be created for this file.');
