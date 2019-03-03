@@ -1,6 +1,6 @@
 {
   "name": "cecs543_project-1",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "The first version of a version control for CECS 543.",
   "main": "index.js",
   "scripts": {
