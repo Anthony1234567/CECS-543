@@ -1,4 +1,10 @@
-//ArtifactID Service
+/**
+* @author: Yashua Ovando
+* @email: yashua.ovando@student.csulb.edu
+* @description: This module provides functionality that allowing the generation
+* of artifcat id.  
+*/
+
 
 const fs = require('fs');
 	

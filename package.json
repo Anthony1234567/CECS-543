@@ -1,6 +1,6 @@
 {
   "name": "cecs543_project-1",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "The first version of a version control for CECS 543.",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/Anthony1234567/CECS543_Project-1.git"
   },
-  "author": "Sotheanith Sok, Anthony Martinez",
+  "author": "Sotheanith Sok, Anthony Martinez, Chandandeep Thind, Prateechi Singh, Yashua Ovando",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Anthony1234567/CECS543_Project-1/issues"

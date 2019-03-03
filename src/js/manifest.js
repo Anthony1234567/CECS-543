@@ -1,4 +1,12 @@
 /**
+* @author: Sotheanith Sok
+* @email: sotheanith.sok@student.csulb.edu
+* @description: This module provides functionality that allows the generation
+* and updation of manifest file.  
+*/
+
+
+/**
  * Imports
  */
 const fs = require('fs')
@@ -47,6 +55,7 @@ class Manifest {
      * by the new
      * @param {string | number} id 
      * @param {array} artifacts 
+     * 
      */
     createEntry(id, artifacts) {
         if ((isString(id) || isNumber(id)) && isArray(artifacts)) {
