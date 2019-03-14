@@ -1,15 +1,16 @@
 /**
-* @author: Sotheanith Sok
-* @email: sotheanith.sok@student.csulb.edu
-* @description: This module provides functionality that allows the generation
-* and updation of manifest file.  
-*/
+ * @author: Sotheanith Sok
+ * @email: sotheanith.sok@student.csulb.edu
+ * @description: This module provides functionality that allows the generation
+ * and updation of manifest file.  
+ */
 
 
 /**
  * Imports
  */
 const fs = require('fs')
+const crypto = require('crypto')
 
 /**This is a manifest object contains information related the distribution of artifacts of each files.*/
 class Manifest {
@@ -49,113 +50,87 @@ class Manifest {
         return JSON.parse(JSON.stringify(this._content));
     }
 
-    /**
-     * Create a new entry in the manifest with a given array of artifacts.
-     * If entry already exists, its artifacts will be overwritten by a given array of artifacts.
-     * by the new
-     * @param {string | number} id 
-     * @param {array} artifacts 
-     * 
-     */
-    createEntry(id, artifacts) {
-        if ((isString(id) || isNumber(id)) && isArray(artifacts)) {
-            if (this._content[id] === undefined) {
-                this._content[id] = [];
-            }
-            this._content[id] = artifacts;
-            writeToFile(this._path,this._content);
-        } else {
-            throw new Error("Invalid inputs detected.");
-        }
-    }
+    createEntry(id, author, description, type, tag, value) {
 
-    /**
-     * Remove an existing entry from the manifest.
-     * @param {string | number} id 
-     */
-    removeEntry(id) {
-        if (isString(id) || isNumber(id)) {
-            if (this._content[id] != undefined) {
-                delete this._content[id];
-                writeToFile(this._path,this._content);
-            }
-        } else {
-            throw new Error("Invalid inputs detected.");
+        //Type checking
+        if (!isString(id) && !isNumber(id)) {
+            throw new Error('id must be a string or a number');
         }
-    }
-
-    /**
-     * Add an array of artifacts to an entry in the manifest.
-     * If no entry existed, new entry will be create.
-     * @param {string | number} id 
-     * @param {array} artifacts 
-     */
-    addArtifactsToEntry(id, artifacts) {
-        if ((isString(id) || isNumber(id)) && isArray(artifacts)) {
-            if (this._content[id] === undefined) {
-                this._content[id] = [];
-            }
-            artifacts.forEach((value) => {
-                this._content[id].push(value);
-            })
-            writeToFile(this._path,this._content);
-        } else {
-            throw new Error("Invalid inputs detected.");
+        if (this._content[id] != undefined) {
+            throw new Error('entry already existed');
         }
-    }
-
-    /**
-     * Remove an array of artifacts from an entry in the manifest
-     * @param {string | number} id 
-     * @param {array} artifacts 
-     */
-    removeArtifactsFromEntry(id, artifacts) {
-        if ((isString(id) || isNumber(id)) && isArray(artifacts)) {
-            artifacts.forEach((value) => {
-                this.removeArtifactFromEntry(id, value);
-            })
-            writeToFile(this._path,this._content);
-        } else {
-            throw new Error("Invalid inputs detected.");
+        if (!isString(author)) {
+            throw new Error('author must be a string');
         }
-    }
-
-    /**
-     * Add a single artifact to an entry in the manifest.
-     * @param {string | number} id 
-     * @param {string | number} artifact 
-     */
-    addArtifactToEntry(id, artifact) {
-        if ((isString(id) || isNumber(id)) && (isString(artifact) || isNumber(artifact))) {
-            if (this._content[id] === undefined) {
-                this._content[id] = [];
-            }
-            this._content[id].push(artifact);
-            writeToFile(this._path,this._content);
-        } else {
-            throw new Error("Invalid inputs detected.");
+        if (!isString(description)) {
+            throw new Error('description must be a string');
         }
-    }
+        if (!isString(type)) {
+            throw new Error('Type must be string');
+        } else if (type != 'commit' && type != 'checkin' && type != 'checkout') {
+            throw new Error('Invalid type for the provided entry');
+        }
 
-    /**
-     * Remove a single artifact from an entry in the manifest.
-     * @param {string | number} id 
-     * @param {string | number} artifact 
-     */
-    removeArtifactFromEntry(id, artifact) {
-        if ((isString(id) || isNumber(id)) && (isString(artifact) || isNumber(artifact))) {
-            if (this._content[id] != undefined) {
-                let index = this._content[id].indexOf(artifact);
-                if (index > -1) {
-                    this._content[id].splice(index, 1);
+        if ((type == 'checkin' || type === 'checkout') && !isString(value)) {
+            throw new Error('value must be a string for checkin type or checkout type');
+        }
+
+        //Data formating and verification
+        if (!isArray(tag)) {
+            tag = [tag];
+        }
+
+        if (type === 'commit' && !isArray(value)) {
+            value = [value];
+        }
+
+        if (type === 'checkin') {
+            if (this._content[value] === undefined) {
+                throw new Error('Checkout does not exist')
+            } else {
+                //Verify that checkout is corresponding with the checkin
+                const hash = crypto.createHash('sha256');
+                hash.update(value);
+                let temp = hash.digest('hex');
+                if (id != temp) {
+                    throw new Error('Invalid checkin and checkout pair')
                 }
             }
-            writeToFile(this._path,this._content);
-        } else {
-            throw new Error("Invalid inputs detected.");
         }
 
+        if (type === 'checkout') {
+            const hash = crypto.createHash('sha256');
+            hash.update(id.toString(10));
+            value = hash.digest('hex');
+        }
+
+        //Create object
+        this._content[id] = {
+            id:id,
+            author: author,
+            description: description,
+            type: type,
+            created: Date.now(),
+            lastUpdated: Date.now(),
+            tag: tag,
+            value: value
+        }
+        return this._content[id];
+
     }
+
+    getEntry() {
+
+    }
+
+    updateEntry() {
+
+    }
+
+    deleteEntry() {
+
+    }
+
 
 }
 
@@ -164,13 +139,13 @@ class Manifest {
  * @param {string} filePath 
  */
 function readFromFile(filePath) {
-    if(fs.existsSync(filePath)){
+    if (fs.existsSync(filePath)) {
         let content = fs.readFileSync(filePath);
         return JSON.parse(content);
-    }else{
+    } else {
         return {};
     }
-    
+
 }
 
 /**
@@ -179,13 +154,13 @@ function readFromFile(filePath) {
  * @param {object} object 
  */
 function writeToFile(filePath, object) {
-    let j = JSON.stringify(object,null,1);
+    let j = JSON.stringify(object, null, 1);
     // fs.writeFile(filePath, j, (err) => {
     //     if(err){
     //         console.log(err);
     //     }
     // })
-    fs.writeFileSync(filePath,j);
+    fs.writeFileSync(filePath, j);
 }
 
 /**
