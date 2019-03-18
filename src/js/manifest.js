@@ -50,6 +50,15 @@ class Manifest {
         return JSON.parse(JSON.stringify(this._content));
     }
 
+    /**
+     * Create a new entry in the manifest
+     * @param {string|number} id Unique identifier for this entry
+     * @param {string} author Name of the person who create this entry
+     * @param {string} description Description of this entry
+     * @param {"commit"|"checkin"|"checkout"} type Type of this entry
+     * @param {array|string} tag Tag which indicate the group/groups of which this entry belong to 
+     * @param {array|string} value Value of this entry. For commit, it can be an array or a string. For checkin, it must be a value that when it gets hashed, the result is the id. For checkout, it doesn't need one.
+     */
     createEntry(id, author, description, type, tag, value) {
 
         //Type checking
@@ -115,14 +124,25 @@ class Manifest {
             tag: tag,
             value: value
         }
+        writeToFile(this._path, this._content);
         return this._content[id];
 
     }
 
+    /**
+     * Get a entry from this manifest
+     * @param {string|number} id Unique identifer of an entry 
+     */
     getEntry(id) {
         return this._content[id];
     }
 
+    /**
+     * Update a field inside an entry of this manifest
+     * @param {string|number} id Unique identifer of an entry 
+     * @param {"id"|"author"|"description"|"type"|"tag"|"value"} field A field that will be modify
+     * @param {array|string} value New value for an indicated field 
+     */
     updateEntry(id, field, value) {
         //Type checking
         if (!isString(id) && !isNumber(id)) {
@@ -213,13 +233,32 @@ class Manifest {
                 }
         }
 
-
+        writeToFile(this._path, this._content);
     }
 
+    /**
+     * Delete an entry from this manifest
+     * @param {string|number} id Unique identifier of an entry
+     * @returns The removed entry 
+     */
     deleteEntry(id) {
         let temp = this._content[id];
         delete this._content[id];
+        writeToFile(this._path, this._content);
         return temp;
+    }
+
+    /**
+     * Check if an entry existed
+     * @param {string|number} id Unique identifier of an entry
+     * @returns True if an entry exist. False, otherwise
+     */
+    isEntryExist(id) {
+        if (this._content[id] === undefined) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 

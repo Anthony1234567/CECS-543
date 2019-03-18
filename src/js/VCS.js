@@ -11,6 +11,7 @@ const fs = require('fs'); // source: https://nodejs.org/api/fs.html
 const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
 const manifest = require('./Manifest'); // For tracking
 const crypto = require('crypto'); // Generating commit Id
+const path = require('path'); //use to resolve and normalize path to an absolute value
 
 /*
  * @description: Initialization method. 
@@ -120,7 +121,12 @@ function VCS(sourceRoot) {
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
-                        this.manifest.addArtifactToEntry(this.commitId, targetArtifact);
+                        if(this.manifest.isEntryExist(this.commitId)){
+                            this.manifest.updateEntry(this.commitId,"value",path.resolve(targetArtifact));
+                        }else{
+                            this.manifest.createEntry(this.commitId,"","","commit", "",path.resolve(targetArtifact));
+                        }
+                        this.manifest.createEntry("","","","","",)
                         
                         if(fullCopy) {
                             // Create directory with name of file
