@@ -3,14 +3,15 @@
 ### Team PSA
 - Sotheanith Sok
 - Anthony Martinez
-- Chandandeep Thind ❖ Prateechi Singh
+- Chandandeep Thind 
+- Prateechi Singh
 - Yashua Ovando
 
 ### Intro
 This is the initial iteration of the version control system build by Team PSA. The goal of this iteration is to build a strong foundation in which subsequent iteration can be built upon. As such, the current version of this system only offer users an ability to create a new repository and commit changes to such a repository. Even though this product, in its current iteration, offers only a minimal feature set, it is still a functional product that accomplishes its goal without any error and it has a great users’ experience.
 
 ### External Requirements
- - Node JS (10.15.1) ❖ Express (4.16.4) ❖ Browserify (16.2.3)
+- Node JS (10.15.1) ❖ Express (4.16.4) ❖ Browserify (16.2.3)
 
 ### Setup and Installation
 - Manually install Node JS
@@ -46,4 +47,4 @@ Features (both included and missing)
 ➢ Email notification of a change to all collaborators
 
 ### Known Issues:
-❖ None
+None
