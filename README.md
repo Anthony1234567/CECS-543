@@ -1,23 +1,23 @@
 # CECS 543 - Project 1: Version Control System
 
-### Team PSA
+## Team PSA
 - Sotheanith Sok
 - Anthony Martinez
 - Chandandeep Thind 
 - Prateechi Singh
 - Yashua Ovando
 
-### Intro
+## Intro
 This is the initial iteration of the version control system build by Team PSA. The goal of this iteration is to build a strong foundation in which subsequent iteration can be built upon. As such, the current version of this system only offer users an ability to create a new repository and commit changes to such a repository. Even though this product, in its current iteration, offers only a minimal feature set, it is still a functional product that accomplishes its goal without any error and it has a great users’ experience.
 
-### External Requirements
+### External Requirements:
 - Node JS (10.15.1) ❖ Express (4.16.4) ❖ Browserify (16.2.3)
 
-### Setup and Installation
+### Setup and Installation:
 - Manually install Node JS
 - Run “npm install” to install all necessary dependencies ❖ Run “node index.js” to start the application
 
-### Sample invocation & results to see
+### Sample Invocation and Results
 - Invocation 1 - Create Repository
 ➢ Start the application by running “node index.js” from a command line ➢ Open your favorite browsers
 ➢ Go to: ​http://localhost:3000/
@@ -46,5 +46,5 @@ Features (both included and missing)
 ➢ Contribution history of collaborators
 ➢ Email notification of a change to all collaborators
 
-### Known Issues:
+## Known Issues
 None
