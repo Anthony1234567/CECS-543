@@ -126,8 +126,6 @@ function VCS(sourceRoot) {
                         }else{
                             this.manifest.createEntry(this.commitId,"","","commit", "",path.resolve(targetArtifact));
                         }
-                        this.manifest.createEntry("","","","","",)
-                        
                         if(fullCopy) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {

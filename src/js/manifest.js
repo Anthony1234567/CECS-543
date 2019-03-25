@@ -261,6 +261,22 @@ class Manifest {
         }
     }
 
+    /**
+     * Search the manifest for entires
+     * @param {string} field field to match to
+     * @param {string|number} value value of such field
+     */
+    searchManifest(field, value){
+        let keys= Object.keys(this._content);
+        let temp={};
+        keys.forEach(e =>{
+            let source = this._content[e]
+            if(source[field]===value)
+                temp[e]=source
+        });
+        return temp;
+    }
+
 
 }
 
