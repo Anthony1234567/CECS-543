@@ -1,11 +1,95 @@
 /*
-* @author: Prateechi Singh
-* @email: prateechi.singh@student.csulb.edu
-* @description: This is the css file for controller.html and it contains styling for such html file
-*/
-
-
-form {
-    color: red;
+ * @author: Prateechi Singh
+ * @description: This is the css file for controller.html and it contains styling for such html file
+ */
+body {
+    background-color: rgb(40, 50, 55);
+    padding: 25% 15%;
     text-align: center;
 } 
+
+input[type=text] {
+    padding: 12px 20px;
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+button {
+    background-color: rgb(55, 70, 73);
+    border: none;
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 10em;
+}
+  
+button:hover {
+    background-color: rgb(60, 73, 76);
+}
+
+button:disabled {
+    background-color: rgb(60, 73, 76);
+}
+
+i {
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    margin: 0 0 .25em 1em;
+}
+
+.down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+}
+
+.dropdown {
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    right: 2em;
+}
+
+.dropdown-button {
+    background-color: rgb(41, 50, 55);
+    color: white;
+    padding: 16px;
+    border: none;
+    cursor: pointer;
+    width: 10em;
+}
+  
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: rgb(41, 50, 55);
+    min-width: 10em;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+  
+.dropdown-content a {
+    color: rgb(89, 108, 117);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+  
+.dropdown-content a:hover {
+    background-color: rgb(41, 50, 55);
+    color: white;
+}
+  
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+  
+.dropdown:hover .dropdown-button {
+    background-color: rgb(41, 50, 55);
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}

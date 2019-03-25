@@ -1,27 +1,62 @@
 <!--
- @author: Prateechi Singh
- @email: prateechi.singh@student.csulb.edu
- @description: This is the html file for the controller of this application. It is suppose to be
- server to users when they vist our domain
+  @author: Prateechi Singh
+  @description: This is the html file for the controller of this application. 
+                It is suppose to be server to users when they vist our domain
 -->
-
-
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>CECS 543: Project 1 - Version Control System</title>
+    <link rel="stylesheet" href="../css/controller.css">
+    <script src="../js/controllerB.js"></script>
+  </head>
 
-<head>
-  <title>VERSION CONTROL SYSTEM</title>
-  <link rel="stylesheet" href="../css/controller.css">
-</head>
+  <body>
+    <div class="dropdown">
+      <button class="dropdown-button">
+        Select Action 
+        <i class="arrow down"></i>
+      </button>
 
-<body style="margin:0;">
-  <h1>Enter the source directory</h1>
-  <br><br><br>
-  <input type="text" id="directory-field" placeholder="Enter Source Directory" type="text">
-  <button onclick="Controller.create()">Create</button>
-  <button onclick="Controller.commit()">Commit</button>
+      <div class="dropdown-content">
+        <a href="javascript:void(0)" onclick="setActionType('Create Repository')">Create Repository</a>
+        <a href="javascript:void(0)" onclick="setActionType('Check In')">Check In</a>
+        <a href="javascript:void(0)" onclick="setActionType('Check Out')">Check Out</a>
+      </div>
+    </div>
 
-</body>
-<script src="../js/controllerB.js"></script>
+    <div style="display: flex;">
+      <input 
+        type="text" 
+        id="directory-field" 
+        placeholder="Enter Source Directory"
+        style="flex-grow: 1; margin-right: 1em;">
 
+      <button Id="actionButton">
+        Open Folder
+      </button>
+    </div>
+  </body>
+
+  <script type="text/javascript">
+    function setActionType(actionType) {
+      const actionButton = document.getElementById('actionButton');
+
+      switch (actionType) {
+        case 'Create Repository':
+          actionButton.innerHTML = actionType;
+          actionButton.onclick = "Controller.create()";
+          break;
+        case 'Check In':
+          actionButton.innerHTML = actionType;
+          actionButton.onclick = "Controller.commit()";
+          break;
+        case 'Check Out':
+          window.alert('Action Type Not Yet Implemented.');
+          break;
+        default:
+          console.warn('Warning: Unexpected Action Type.');
+      }
+    }
+  </script>
 </html>
