@@ -1,351 +1,87 @@
-/**
- * @author: Sotheanith Sok
- * @email: sotheanith.sok@student.csulb.edu
- * @description: This module provides functionality that allows the generation
- * and updation of manifest file.  
- */
 
 
-/**
- * Imports
- */
-const fs = require('fs')
-const crypto = require('crypto')
+//imports 
+const fs = require("fs");
+const check = require("check-types");
+const path = require('path');
 
-/**This is a manifest object contains information related the distribution of artifacts of each files.*/
 class Manifest {
 
-    /**
-     * A default constructor 
-     * @param {string} path 
-     */
-    constructor(path) {
-        if (isString(path)) {
-            this._path = path;
-            this._content = readFromFile(path);
-        } else {
-            throw new Error('Path must be a string.')
+    constructor(p) {
+        //check parameters
+        if (!check.nonEmptyString(p)) {
+            throw new Error("Invalid path to a directory");
         }
 
-    }
-
-    /**
-     * Getter for path
-     */
-    get path() {
-        return this._path;
-    }
-
-    /**
-     * Setter for path
-     */
-    set path(input) {
-        this._path = input;
-    }
-
-    /**
-     * Get the content of this manifest. 
-     */
-    get content() {
-        return JSON.parse(JSON.stringify(this._content));
-    }
-
-    /**
-     * Create a new entry in the manifest
-     * @param {string|number} id Unique identifier for this entry
-     * @param {string} author Name of the person who create this entry
-     * @param {string} description Description of this entry
-     * @param {"commit"|"checkin"|"checkout"} type Type of this entry
-     * @param {array|string} tag Tag which indicate the group/groups of which this entry belong to 
-     * @param {array|string} value Value of this entry. For commit, it can be an array or a string. For checkin, it must be a value that when it gets hashed, the result is the id. For checkout, it doesn't need one.
-     */
-    createEntry(id, author, description, type, tag, value) {
-
-        //Type checking
-        if (!isString(id) && !isNumber(id)) {
-            throw new Error('id must be a string or a number');
-        }
-        if (this._content[id] != undefined) {
-            throw new Error('entry already existed');
-        }
-        if (!isString(author)) {
-            throw new Error('author must be a string');
-        }
-        if (!isString(description)) {
-            throw new Error('description must be a string');
-        }
-        if (!isString(type)) {
-            throw new Error('Type must be string');
-        } else if (type != 'commit' && type != 'checkin' && type != 'checkout') {
-            throw new Error('Invalid type for the provided entry');
+        //check if folder exist
+        let isExist = fs.existsSync(path.resolve(p));
+        let isDirectory = fs.isDirectory(path.resolve(p));
+        if (!isExist || !isDirectory) {
+            throw new Error("Directory does not exist.");
         }
 
-        if ((type == 'checkin' || type === 'checkout') && !isString(value)) {
-            throw new Error('value must be a string for checkin type or checkout type');
+        //Build the path
+        this._path = path.resolve(p, "/Manifests");
+
+        //Make directory if it doesn't exist
+        isExist = fs.existsSync(this._path);
+        if (!isExist) {
+            fs.mkdirSync(this._path);
         }
 
-        //Data formating and verification
-        if (!isArray(tag)) {
-            tag = [tag];
-        }
-
-        if (type === 'commit' && !isArray(value)) {
-            value = [value];
-        }
-
-        if (type === 'checkin') {
-            if (this._content[value] === undefined) {
-                throw new Error('Checkout does not exist')
-            } else {
-                //Verify that checkout is corresponding with the checkin
-                const hash = crypto.createHash('sha256');
-                hash.update(value);
-                let temp = hash.digest('hex');
-                if (id != temp) {
-                    throw new Error('Invalid checkin and checkout pair')
-                }
+        let readFiles = fs.readdirSync(this._path, { withFileTypes: "true" });
+        let files = readFiles.filter(item => item.isFile());
+        files.forEach((file) => {
+            let obj = readFile(file.name);
+            switch (obj.type) {
+                case "commit":
+                    this._commits.push(obj);
+                    break;
+                case "checkin":
+                    this._checkins.push(obj);
+                    break;
+                case "checkout":
+                    this._checkouts.push(obj);
+                    break;
+                default:
+                    throw new Error("Unknow file type");
             }
-        }
-
-        if (type === 'checkout') {
-            const hash = crypto.createHash('sha256');
-            hash.update(id.toString(10));
-            value = hash.digest('hex');
-        }
-
-        //Create object
-        this._content[id] = {
-            id: id,
-            author: author,
-            description: description,
-            type: type,
-            created: Date.now(),
-            lastUpdated: Date.now(),
-            tag: tag,
-            value: value
-        }
-        writeToFile(this._path, this._content);
-        return this._content[id];
+        })
 
     }
 
-    /**
-     * Get a entry from this manifest
-     * @param {string|number} id Unique identifer of an entry 
-     */
-    getEntry(id) {
-        return this._content[id];
+    createCommit(){
+
     }
 
-    /**
-     * Update a field inside an entry of this manifest
-     * @param {string|number} id Unique identifer of an entry 
-     * @param {"id"|"author"|"description"|"type"|"tag"|"value"} field A field that will be modify
-     * @param {array|string} value New value for an indicated field 
-     */
-    updateEntry(id, field, value) {
-        //Type checking
-        if (!isString(id) && !isNumber(id)) {
-            throw new Error('id must be a string or a number');
-        }
-        if (!isString(field)) {
-            throw new Error('field must be a string')
-        } else if (field != "id" && field != "author" && field != "type" && field != "tag" && field != "value" && field != "description") {
-            throw new Error('Unknown field')
-        }
+    createCheckin(){
 
-        this._content[id].lastUpdated = Date.now();
-        switch (field) {
-            case "id":
-                if (this._content[id].type === "checkin") {
-                    throw new Error('You can\'t change the id of checkin entry as it is derived from value. Please change the value instead');
-                }
-                if (!isString(value) && !isNumber(value)) {
-                    throw new Error('For id, value must be a string or a number')
-                } else if (id != value) {
-                    this._content[id].id = value;
-                    if (this._content[id].type === "checkout") {
-                        const hash = crypto.createHash('sha256');
-                        hash.update(value.toString(10));
-                        let temp = hash.digest('hex');
-                        this._content[id].value = temp;
-                    }
-                    this._content[value] = this._content[id];
-                    delete this._content[id];
-                }
-                break;
-            case "author":
-                if (!isString(value)) {
-                    throw new Error('For author, value must be a string');
-                }
-                this._content[id].author = value;
-                break;
-            case "description":
-                if (isString(value)) {
-                    this._content[id].description = value;
-                } else {
-                    throw new Error("For description, value must be a string")
-                }
-                break;
-            case "type":
-                if (!isString(value)) {
-                    throw new Error('For type, value must be a string');
-                } else if (value != "commit" && value != "checkin" && value != "checkout") {
-                    throw new Error('Invalid value provided for type field')
-                }
-                this._content[id].type = value;
-                break;
-            case "tag":
-                if (isString(value)) {
-                    this._content[id].tag.push(value);
-                } else if (isArray(value)) {
-                    this._content[id].tag = value;
-                } else {
-                    throw new Error('For tag, value must be a string or an array')
-                }
-                break;
-            default:
-                if (this._content[id].type === "commit") {
-                    if (isString(value)) {
-                        this._content[id].value.push(value);
-                    } else if (isArray(value)) {
-                        this._content[id].value = value;
-                    } else {
-                        throw new Error("For commit, value must be a string or an array")
-                    }
-                } else if (this._content[id].type === "checkin") {
-                    if (isString(value)) {
-                        const hash = crypto.createHash('sha256');
-                        hash.update(value.toString(10));
-                        let temp = hash.digest('hex');
-                        if (this._content[id].id != temp) {
-                            this._content[id].value = value;
-                            this._content[id].id = temp;
-                            this._content[temp] = this._content[id];
-                            delete this.content[id];
-                        }
-                    } else {
-                        throw new Error("For checkin, value must be a string")
-                    }
-
-                } else {
-                    throw new Error('You can\'t change the value of checkout entry as it is derived from id. Please change id instead.');
-                }
-        }
-
-        writeToFile(this._path, this._content);
     }
 
-    /**
-     * Delete an entry from this manifest
-     * @param {string|number} id Unique identifier of an entry
-     * @returns The removed entry 
-     */
-    deleteEntry(id) {
-        let temp = this._content[id];
-        delete this._content[id];
-        writeToFile(this._path, this._content);
-        return temp;
+    createCheckout(){
+
     }
 
-    /**
-     * Check if an entry existed
-     * @param {string|number} id Unique identifier of an entry
-     * @returns True if an entry exist. False, otherwise
-     */
-    isEntryExist(id) {
-        if (this._content[id] === undefined) {
-            return false;
-        } else {
-            return true;
-        }
-    }
+    updateCommit(){
 
-    /**
-     * Search the manifest for entires
-     * @param {string} field field to match to
-     * @param {string|number} value value of such field
-     */
-    searchManifest(field, value){
-        let keys= Object.keys(this._content);
-        let temp={};
-        keys.forEach(e =>{
-            let source = this._content[e]
-            if(source[field]===value)
-                temp[e]=source
-        });
-        return temp;
     }
 
 
-}
-
-/**
- * A synchronous reading of the JSON formatted file.  
- * @param {string} filePath 
- */
-function readFromFile(filePath) {
-    if (fs.existsSync(filePath)) {
-        let content = fs.readFileSync(filePath);
-        return JSON.parse(content);
-    } else {
-        return {};
+    getItem(){
+        
     }
 
-}
+    isItemExist(){
 
-/**
- * An synchronous writing of an object into a file.
- * @param {string} filePath 
- * @param {object} object 
- */
-function writeToFile(filePath, object) {
-    let j = JSON.stringify(object, null, 1);
-    // fs.writeFile(filePath, j, (err) => {
-    //     if(err){
-    //         console.log(err);
-    //     }
-    // })
-    fs.writeFileSync(filePath, j);
-}
+    }
 
-/**
- * Check if the input is a string.
- * @param {*} input 
- */
-function isString(input) {
-    if (typeof input === 'string' || input instanceof String) {
-        return true;
-    } else {
-        return false;
+
+    readFile(fileName) {
+        return JSON.parse(fs.readSync(path.resolve(this._path, fileName)));
+    }
+
+
+    writeFile(fileName, value) {
+        fs.writeFile(path.join(this._path, fileName), JSON.stringify(value));
     }
 }
-
-/**
- * Check if the input is a number.
- * @param {*} input 
- */
-function isNumber(input) {
-    if (typeof input === 'number' || input instanceof Number) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Check if the input is an array.
- * @param {*} input 
- */
-function isArray(input) {
-    if (Array.isArray(input)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Expose the manifest class for external usage. 
- */
-module.exports = Manifest;
