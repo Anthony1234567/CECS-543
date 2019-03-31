@@ -1,12 +1,12 @@
 {
   "name": "cecs543_project-1",
-  "version": "1.0.0",
-  "description": "The first version of a version control for CECS 543.",
+  "version": "1.1.0",
+  "description": "The second iteration of a version control for CECS 543.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build && node index.js",
-    "build":"browserify .\\src\\frontend\\js\\controller.js --standalone Controller > .\\src\\frontend\\js\\controllerB.js"
+    "build": "browserify .\\src\\frontend\\js\\controller.js --standalone Controller > .\\src\\frontend\\js\\controllerB.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Anthony1234567/CECS543_Project-1#readme",
   "dependencies": {
+    "check-types": "^8.0.2",
     "express": "^4.16.4",
     "request": "^2.88.0"
   },

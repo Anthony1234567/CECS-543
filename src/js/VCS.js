@@ -11,6 +11,7 @@ const fs = require('fs'); // source: https://nodejs.org/api/fs.html
 const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
 const manifest = require('./Manifest'); // For tracking
 const crypto = require('crypto'); // Generating commit Id
+const path = require('path'); //use to resolve and normalize path to an absolute value
 
 /*
  * @description: Initialization method. 
@@ -44,6 +45,7 @@ VCS.prototype.init = function() {
  *               Creates vcs hidden subdirectory for tracking changes
  */ 
 VCS.prototype.commit = function() {
+    
     fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
         // TODO: Implement some error handling
         if (error) { throw error; }
@@ -61,7 +63,7 @@ VCS.prototype.commit = function() {
 function VCS(sourceRoot) {
     this.sourceRoot = sourceRoot; 
     this.vcsFileName = '.psa'; // VSC file [target] name
-    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' + 'Manifest.json');
+    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' );
     this.commitId = crypto.randomBytes(8).toString('hex');
 
     /*
@@ -120,7 +122,11 @@ function VCS(sourceRoot) {
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
-                        this.manifest.addArtifactToEntry(this.commitId, targetArtifact);
+                        if(this.manifest.isItemExist(this.commitId)){
+                            this.manifest.updateCommit(this.commitId,"values",path.resolve(targetArtifact));
+                        }else{
+                            this.manifest.createCommit(this.commitId,path.resolve(targetArtifact))
+                        }
                         
                         if(fullCopy) {
                             // Create directory with name of file
