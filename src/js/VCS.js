@@ -62,7 +62,7 @@ VCS.prototype.commit = function() {
 function VCS(sourceRoot) {
     this.sourceRoot = sourceRoot; 
     this.vcsFileName = '.psa'; // VSC file [target] name
-    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' + 'Manifest.json');
+    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' );
     this.commitId = crypto.randomBytes(8).toString('hex');
 
     /*
@@ -121,11 +121,13 @@ function VCS(sourceRoot) {
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
-                        if(this.manifest.isEntryExist(this.commitId)){
-                            this.manifest.updateEntry(this.commitId,"value",path.resolve(targetArtifact));
+                        console.log(this.manifest.isItemExist(this.commitId))
+                        if(this.manifest.isItemExist(this.commitId)){
+                            this.manifest.updateCommit(this.commitId,"values",path.resolve(targetArtifact));
                         }else{
-                            this.manifest.createEntry(this.commitId,"","","commit", "",path.resolve(targetArtifact));
+                            this.manifest.createCommit(this.commitId,path.resolve(targetArtifact))
                         }
+                        
                         if(fullCopy) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {

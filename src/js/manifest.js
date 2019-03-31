@@ -13,75 +13,124 @@ class Manifest {
             throw new Error("Invalid path to a directory");
         }
 
+        this._commits = [];
+        this._checkins = [];
+        this._checkout = [];
+        this._root = path.join(p, "../")
+        this._path = path.resolve(path.join(p, "/Manifests"));
+        this._pathExisted = false;
+
         //check if folder exist
-        let isExist = fs.existsSync(path.resolve(p));
-        let isDirectory = fs.isDirectory(path.resolve(p));
-        if (!isExist || !isDirectory) {
-            throw new Error("Directory does not exist.");
+        let isExist = fs.existsSync(this._path);
+
+        //If it exist, begin reading the files
+        if (isExist) {
+            let readFiles = fs.readdirSync(this._path, { withFileTypes: "true" });
+            let files = readFiles.filter(item => item.isFile());
+            files.forEach((file) => {
+                let obj = this.readFile(file.name.slice(0, -5));
+                switch (obj.command) {
+                    case "commit":
+                        this._commits.push(obj.id);
+                        break;
+                    case "checkin":
+                        this._checkins.push(obj.id);
+                        break;
+                    case "checkout":
+                        this._checkouts.push(obj.id);
+                        break;
+                    default:
+                        throw new Error("Unknown file type");
+                }
+            })
         }
 
-        //Build the path
-        this._path = path.resolve(p, "/Manifests");
+    }
 
-        //Make directory if it doesn't exist
-        isExist = fs.existsSync(this._path);
-        if (!isExist) {
-            fs.mkdirSync(this._path);
+    createCommit(id, values, author, description, tag) {
+        //Parameters checking
+        if (!check.nonEmptyString(id)) {
+            throw new Error("Id must be a string");
         }
 
-        let readFiles = fs.readdirSync(this._path, { withFileTypes: "true" });
-        let files = readFiles.filter(item => item.isFile());
-        files.forEach((file) => {
-            let obj = readFile(file.name);
-            switch (obj.type) {
-                case "commit":
-                    this._commits.push(obj);
-                    break;
-                case "checkin":
-                    this._checkins.push(obj);
-                    break;
-                case "checkout":
-                    this._checkouts.push(obj);
-                    break;
-                default:
-                    throw new Error("Unknow file type");
-            }
-        })
+        if (!check.nonEmptyArray(values) && !check.nonEmptyString(values)) {
+            throw new Error("Values be a non-empty string or non-empty array");
+        }
+        if (check.nonEmptyString(tag)) {
+            tag = [tag];
+        }
+
+        let obj = {
+            id: id,
+            argument: this._root,
+            author: (check.nonEmptyString(author)) ? author : null,
+            description: (check.nonEmptyString(description)) ? description : null,
+            tag: (check.nonEmptyArray(tag)) ? tag : null,
+            values: (check.nonEmptyArray(values)) ? values : [values],
+            created: Date.now(),
+            lastUpdated: Date.now(),
+            command: "commit"
+        };
+
+        this._commits.push(obj.id);
+        this.writeFile(obj.id, obj);
+    }
+
+    createCheckin() {
 
     }
 
-    createCommit(){
+    createCheckout() {
 
     }
 
-    createCheckin(){
+    updateCommit(id, field, value) {
+        if (!field === "author" && !field === "description" && !field === "tag" && !field === "values") {
+            throw new Error("Unknown field");
+        }
+        if (this._commits.indexOf(id) <= -1) {
+            throw new Error("The target object isn't a commit")
+        }
 
+        let obj = this.readFile(id);
+
+        switch (field) {
+            case "values":
+                if (check.nonEmptyArray(obj.values)) {
+                    obj.values.push(value);
+                } else {
+                    obj.values = [value];
+                }
+                break;
+            default:
+                obj[field] = value;
+        }
+
+        this.writeFile(obj.id, obj);
     }
 
-    createCheckout(){
-
+    getItem(id) {
+        return this.readFile(id);
     }
 
-    updateCommit(){
-
-    }
-
-
-    getItem(){
-        
-    }
-
-    isItemExist(){
-
+    isItemExist(id) {
+        return (this._commits.indexOf(id) > -1);
     }
 
 
     readFile(fileName) {
-        return JSON.parse(fs.readSync(path.resolve(this._path, fileName)));
+        return JSON.parse(fs.readFileSync(path.resolve(this._path, fileName + ".json")));
     }
 
 
     writeFile(fileName, value) {
-        fs.writeFile(path.join(this._path, fileName), JSON.stringify(value));
+        if (!this._pathExisted) {
+            if (!fs.existsSync(this._path)) {
+                fs.mkdirSync(this._path);
+                this._pathExisted = true;
+            }
+        }
+        fs.writeFileSync(path.join(this._path, fileName + ".json"), JSON.stringify(value, null, 4));
     }
 }
+module.exports = Manifest;
