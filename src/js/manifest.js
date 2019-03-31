@@ -25,7 +25,7 @@ class Manifest {
 
         this._commits = [];
         this._checkins = [];
-        this._checkout = [];
+        this._checkouts = [];
         this._root = path.join(p, "../")
         this._path = path.resolve(path.join(p, "/Manifests"));
         this._pathExisted = false;
@@ -174,7 +174,7 @@ class Manifest {
             command: "checkout"
         };
 
-        this._checkout.push(obj.id); //Push the new object to checkouts array
+        this._checkouts.push(obj.id); //Push the new object to checkouts array
         this.writeFile(obj.id, obj); //Write object to storage
     }
 
@@ -220,6 +220,54 @@ class Manifest {
             return this.readFile(id);
         } else {
             return undefined;
+        }
+    }
+
+    /**
+     * Get all commits sorted by creation date.
+     */
+    getCommits(){
+        let temp = [];
+        this._commits.forEach((e)=>{
+            temp.push(this.getItem(e));
+        })
+        temp.sort((a,b)=>{
+            return a.created-b.created;
+        })
+        if(check.nonEmptyArray(temp)){
+            return temp;
+        }
+    }
+
+    /**
+     * Get all checkins sorted by creation date.
+     */
+    getCheckins(){
+        let temp = [];
+        this._checkins.forEach((e)=>{
+            temp.push(this.getItem(e));
+        })
+        temp.sort((a,b)=>{
+            return a.created-b.created;
+        })
+        if(check.nonEmptyArray(temp)){
+            return temp;
+        }
+    }
+
+    /**
+     * Get all checkouts sorted by creation date.
+     */
+    getCheckouts(){
+        let temp = [];
+        this._checkouts.forEach((e)=>{
+            temp.push(this.getItem(e));
+        })
+        temp.sort((a,b)=>{
+            return a.created-b.created;
+        })
+        if(check.nonEmptyArray(temp)){
+            return temp;
         }
     }
 

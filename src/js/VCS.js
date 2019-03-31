@@ -45,6 +45,7 @@ VCS.prototype.init = function() {
  *               Creates vcs hidden subdirectory for tracking changes
  */ 
 VCS.prototype.commit = function() {
+    
     fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
         // TODO: Implement some error handling
         if (error) { throw error; }
@@ -121,7 +122,6 @@ function VCS(sourceRoot) {
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
                         
-                        console.log(this.manifest.isItemExist(this.commitId))
                         if(this.manifest.isItemExist(this.commitId)){
                             this.manifest.updateCommit(this.commitId,"values",path.resolve(targetArtifact));
                         }else{
