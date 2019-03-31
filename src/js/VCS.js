@@ -17,8 +17,8 @@ const path = require('path'); //use to resolve and normalize path to an absolute
  * @description: Initialization method. 
  *               Creates vcs hidden subdirectory for tracking changes
  *               Copies main directory contents into vcs and creates artifact structure
- */ 
-VCS.prototype.init = function() {
+ */
+VCS.prototype.init = function () {
     fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
         // TODO: Implement some error handling
         if (error) { throw error; }
@@ -43,9 +43,9 @@ VCS.prototype.init = function() {
 /*
  * @description: Commit method. 
  *               Creates vcs hidden subdirectory for tracking changes
- */ 
-VCS.prototype.commit = function() {
-    
+ */
+VCS.prototype.commit = function () {
+
     fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
         // TODO: Implement some error handling
         if (error) { throw error; }
@@ -60,10 +60,12 @@ VCS.prototype.commit = function() {
     });
 };
 
+
+
 function VCS(sourceRoot) {
-    this.sourceRoot = sourceRoot; 
+    this.sourceRoot = sourceRoot;
     this.vcsFileName = '.psa'; // VSC file [target] name
-    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/' );
+    this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/');
     this.commitId = crypto.randomBytes(8).toString('hex');
 
     /*
@@ -78,11 +80,11 @@ function VCS(sourceRoot) {
     * @param: fullCopy - if true, copy the entire structure of source to target.
     *                    Otherwise only the creates an artifact 
     * Source: https://en.wikipedia.org/wiki/Breadth-first_search
-    */ 
-    this.breadthFirstTraverse = function(sourceRoot, targetRoot, fullCopy) {
+    */
+    this.breadthFirstTraverse = function (sourceRoot, targetRoot, fullCopy) {
         console.log('sourceRoot: ' + sourceRoot);
         console.log('targetRoot: ' + targetRoot);
-        
+
         // Assume top level root is a directory
         // Can ensure all subsequent calls will be made on directories 
         // thanks to fs.readdir option parameter which can help 
@@ -90,8 +92,8 @@ function VCS(sourceRoot) {
         fs.readdir(sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
             // TODO: Implement some error handling
             if (error) { throw error; }
-            
-            directoryContents.forEach((fileOrDirectory) => { 
+
+            directoryContents.forEach((fileOrDirectory) => {
                 console.log('fileOrDirectory: ' + fileOrDirectory.name);
 
                 // Ignore system files
@@ -100,11 +102,11 @@ function VCS(sourceRoot) {
                     // A file, or a directory.
                     if (fileOrDirectory.isDirectory()) {
                         console.log('directory: ' + fileOrDirectory.name);
-                        
+
                         const source = sourceRoot + '/' + fileOrDirectory.name;
                         const target = targetRoot + '/' + fileOrDirectory.name;
 
-                        if(fullCopy) {
+                        if (fullCopy) {
                             fs.mkdir(target, (error) => {
                                 // TODO: Implement some error handling
                                 if (error) { throw error; }
@@ -121,14 +123,14 @@ function VCS(sourceRoot) {
                         const sourceFile = sourceRoot + '/' + fileOrDirectory.name;
                         const targetDirectory = targetRoot + '/' + fileName;
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
-                        
-                        if(this.manifest.isItemExist(this.commitId)){
-                            this.manifest.updateCommit(this.commitId,"values",path.resolve(targetArtifact));
-                        }else{
-                            this.manifest.createCommit(this.commitId,path.resolve(targetArtifact))
+
+                        if (this.manifest.isItemExist(this.commitId)) {
+                            this.manifest.updateCommit(this.commitId, "values", path.resolve(targetArtifact));
+                        } else {
+                            this.manifest.createCommit(this.commitId, path.resolve(targetArtifact))
                         }
-                        
-                        if(fullCopy) {
+
+                        if (fullCopy) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {
                                 // TODO: Implement some error handling
@@ -160,6 +162,55 @@ function VCS(sourceRoot) {
             });
         });
     }
+
+}
+
+/*
+ * @description: Checkout a repository. 
+ *               Clone files from the source directory to the target directory.
+ *               Create checkout manifest in the source directory..
+ * @param {string} targetRoot The target directory
+ */
+VCS.prototype.checkout = function (targetRoot) {
+
+    /**
+     * Clone directory. It will only copy files do not exist in the target directory. 
+     * @param {*} sourceRoot Source directory
+     * @param {*} targetRoot Target directory
+     */
+    let cloneDirectory = function (sourceRoot, targetRoot) {
+
+        //Read a directory
+        fs.readdir(sourceRoot, { withFileTypes: true }, (err, files) => {
+            if (err) {
+                console.log(err);
+            } else {
+
+                //Filter files
+                let filteredFiles = files.filter((value) => {
+                    return value.name.charAt(0) != ".";
+                })
+
+                //Start copying
+                filteredFiles.forEach((value) => {
+                    if (value.isDirectory()) {
+                        if (!fs.existsSync(path.join(targetRoot, value.name))) {
+                            fs.mkdirSync(path.join(targetRoot, value.name));
+                        }
+                        cloneDirectory(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
+                    } else {
+                        if (!fs.existsSync(path.join(targetRoot, value.name))) {
+                            fs.copyFileSync(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+    this.manifest.createCheckout(this.commitId, targetRoot); //Create checkout manifest
+    cloneDirectory(this.sourceRoot, targetRoot); //Start cloning
+    new VCS(targetRoot).init(); //Initalize the target directory
 }
 
 module.exports = VCS;

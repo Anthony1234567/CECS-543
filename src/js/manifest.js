@@ -122,7 +122,7 @@ class Manifest {
         let obj = {
             id: id,
             argument: {
-                source: source,
+                source: path.resolve(source),
                 target: this._root
             },
             author: (check.nonEmptyString(author)) ? author : null,
@@ -164,7 +164,7 @@ class Manifest {
             id: id,
             argument: {
                 source: this._root,
-                target: target
+                target: path.resolve(target)
             },
             author: (check.nonEmptyString(author)) ? author : null,
             description: (check.nonEmptyString(description)) ? description : null,
