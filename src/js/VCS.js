@@ -199,9 +199,7 @@ VCS.prototype.checkout = function (targetRoot) {
                         }
                         cloneDirectory(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
                     } else {
-                        if (!fs.existsSync(path.join(targetRoot, value.name))) {
-                            fs.copyFileSync(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
-                        }
+                        fs.copyFileSync(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
                     }
                 })
             }
