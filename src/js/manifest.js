@@ -109,7 +109,7 @@ class Manifest {
         if (!check.nonEmptyString(id)) {
             throw new Error("Id must be a string");
         }
-        if (!check.nonEmptyString(target)) {
+        if (!check.nonEmptyString(source)) {
             throw new Error("Target be a non-empty string or non-empty array");
         }
 
@@ -122,7 +122,7 @@ class Manifest {
         let obj = {
             id: id,
             argument: {
-                source: source,
+                source: path.resolve(source),
                 target: this._root
             },
             author: (check.nonEmptyString(author)) ? author : null,
@@ -133,8 +133,18 @@ class Manifest {
             command: "checkin"
         };
 
-        this._checkins.push(obj.id); //Push the new object to checkouts array
-        this.writeFile(obj.id, obj); //Write object to storage
+        //Check if the source has been checkout to before
+        let checker = this.getCheckouts().find((element) => {
+            return element.argument.target === obj.argument.source;
+        })
+
+        if (checker) {
+            this._checkins.push(obj.id); //Push the new object to checkouts array
+            this.writeFile(obj.id, obj); //Write object to storage
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -164,7 +174,7 @@ class Manifest {
             id: id,
             argument: {
                 source: this._root,
-                target: target
+                target: path.resolve(target)
             },
             author: (check.nonEmptyString(author)) ? author : null,
             description: (check.nonEmptyString(description)) ? description : null,
@@ -185,6 +195,12 @@ class Manifest {
      * @param {Array | String} value A new value of the field.
      */
     updateCommit(id, field, value) {
+        let changed = false;
+        //Parameter checking
+        if (!check.nonEmptyString(id) || !check.nonEmptyString(field) || !(check.nonEmptyArray(value) || check.nonEmptyString(value))) {
+            throw new Error("Invalid parameters");
+        }
+
         if (!field === "author" && !field === "description" && !field === "tag" && !field === "values") {
             throw new Error("Unknown field");
         }
@@ -196,18 +212,60 @@ class Manifest {
 
         switch (field) {
             case "values":
-                if (check.nonEmptyArray(obj.values)) {
+            if(check.nonEmptyString(value)){
+                if(check.nonEmptyArray(obj.values)){
                     obj.values.push(value);
-                } else {
-                    obj.values = [value];
+                    changed = true;
+                }else{
+                    obj.values=[value]
+                    changed = true;
+                }
+            }else if (check.nonEmptyArray(value)){
+                if(!check.nonEmptyArray(obj.values)){
+                    obj.values=[];
+                }
+                value.forEach((element)=>{
+                    if(check.nonEmptyString(element)){
+                        obj.values.push(element);
+                        changed = true;
+                    }
+                })
+            }
+                break;
+            case "tag":
+                if(check.nonEmptyString(value)){
+                    if(check.nonEmptyArray(obj.tag)){
+                        obj.tag.push(value);
+                        changed = true;
+                    }else{
+                        obj.tag=[value]
+                        changed = true;
+                    }
+                }else if (check.nonEmptyArray(value)){
+                    if(!check.nonEmptyArray(obj.tag)){
+                        obj.tag=[];
+                    }
+                    value.forEach((element)=>{
+                        if(check.nonEmptyString(element)){
+                            obj.tag.push(element);
+                            changed = true;
+                        }
+                    })
                 }
                 break;
             default:
-                obj[field] = value;
+                if (check.nonEmptyString(value)) {
+                    obj[field] = value;
+                    changed = true;
+                }
         }
-        obj.lastUpdated = Date.now();
+        if (changed) {
+            obj.lastUpdated = Date.now();
+            this.writeFile(obj.id, obj);
+        } else {
+            throw new Error("Invalid parameters");
+        }
 
-        this.writeFile(obj.id, obj);
     }
 
     /**
@@ -226,49 +284,43 @@ class Manifest {
     /**
      * Get all commits sorted by creation date.
      */
-    getCommits(){
+    getCommits() {
         let temp = [];
-        this._commits.forEach((e)=>{
+        this._commits.forEach((e) => {
             temp.push(this.getItem(e));
         })
-        temp.sort((a,b)=>{
-            return a.created-b.created;
+        temp.sort((a, b) => {
+            return a.created - b.created;
         })
-        if(check.nonEmptyArray(temp)){
-            return temp;
-        }
+        return temp;
     }
 
     /**
      * Get all checkins sorted by creation date.
      */
-    getCheckins(){
+    getCheckins() {
         let temp = [];
-        this._checkins.forEach((e)=>{
+        this._checkins.forEach((e) => {
             temp.push(this.getItem(e));
         })
-        temp.sort((a,b)=>{
-            return a.created-b.created;
+        temp.sort((a, b) => {
+            return a.created - b.created;
         })
-        if(check.nonEmptyArray(temp)){
-            return temp;
-        }
+        return temp;
     }
 
     /**
      * Get all checkouts sorted by creation date.
      */
-    getCheckouts(){
+    getCheckouts() {
         let temp = [];
-        this._checkouts.forEach((e)=>{
+        this._checkouts.forEach((e) => {
             temp.push(this.getItem(e));
         })
-        temp.sort((a,b)=>{
-            return a.created-b.created;
+        temp.sort((a, b) => {
+            return a.created - b.created;
         })
-        if(check.nonEmptyArray(temp)){
-            return temp;
-        }
+        return temp;
     }
 
     /**
