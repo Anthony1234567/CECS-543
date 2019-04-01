@@ -60,18 +60,86 @@ app.post('/commit', (req, res, next) => {
 /**
  * Checkout route.
  */
-app.post('/checkout',(req,res,next)=>{
-    try{
-        let sourceDirectory=req.body.sourceDirectory;
-        let targetDirectory=req.body.targetDirectory;
+app.post('/checkout', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        let targetDirectory = req.body.targetDirectory;
         new VCS(sourceDirectory).checkout(targetDirectory)
         res.status(200).end();
-    }catch (err){
+    } catch (err) {
         res.status(400).end();
-        console.log(err);
     }
 });
 
+/**
+ * Checkin route.
+ */
+app.post('/checkin', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        let targetDirectory = req.body.targetDirectory;
+        new VCS(targetDirectory).checkin(sourceDirectory)
+        res.status(200).end();
+    } catch (err) {
+        res.status(400).end();
+    }
+});
+
+
+/**
+ * Get commits route.
+ */
+app.post('/get/commits', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        res.send(new VCS(sourceDirectory).get(0));
+        res.status(200).end();
+    } catch (err) {
+        res.status(400).end();
+    }
+})
+
+/**
+ * Get checkins route.
+ */
+app.post('/get/checkins', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        res.send(new VCS(sourceDirectory).get(1));
+        res.status(200).end();
+    } catch (err) {
+        res.status(400).end();
+    }
+})
+
+/**
+ * Get checkouts route.
+ */
+app.post('/get/checkouts', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        res.send(new VCS(sourceDirectory).get(2));
+        res.status(200).end();
+    } catch (err) {
+        res.status(400).end();
+    }
+})
+
+/**
+ * Update a commit route.
+ */
+app.post('/update/commit', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        let id = req.body.id;
+        let field = req.body.field;
+        let value = req.body.value
+        new VCS(sourceDirectory).updateCommit(id, field, value);
+        res.status(200).end();
+    } catch (err) {
+        res.status(400).end();
+    }
+})
 
 /**
  * Port to listen to.

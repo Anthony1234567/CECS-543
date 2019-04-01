@@ -169,14 +169,14 @@ function VCS(sourceRoot) {
  * @description: Checkout a repository. 
  *               Clone files from the source directory to the target directory.
  *               Create checkout manifest in the source directory..
- * @param {string} targetRoot The target directory
+ * @param {String} targetRoot The target directory
  */
 VCS.prototype.checkout = function (targetRoot) {
 
     /**
      * Clone directory. It will only copy files do not exist in the target directory. 
-     * @param {*} sourceRoot Source directory
-     * @param {*} targetRoot Target directory
+     * @param {String} sourceRoot Source directory
+     * @param {String} targetRoot Target directory
      */
     let cloneDirectory = function (sourceRoot, targetRoot) {
 
@@ -209,6 +209,81 @@ VCS.prototype.checkout = function (targetRoot) {
     this.manifest.createCheckout(this.commitId, targetRoot); //Create checkout manifest
     cloneDirectory(this.sourceRoot, targetRoot); //Start cloning
     new VCS(targetRoot).init(); //Initalize the target directory
+}
+
+/*
+ * @description: Checkin a repository. 
+ *               Clone files from the source directory to the target directory.
+ *               Create checkout manifest in the source directory..
+ * @param {String} sourceRoot The source directory
+ */
+VCS.prototype.checkin = function (sourceRoot) {
+
+    /**
+     * Clone directory. It will only copy files do not exist in the target directory. 
+     * @param {String} sourceRoot Source directory
+     * @param {String} targetRoot Target directory
+     */
+    let cloneDirectory = function (sourceRoot, targetRoot) {
+
+        //Read a directory
+        fs.readdir(sourceRoot, { withFileTypes: true }, (err, files) => {
+            if (err) {
+                console.log(err);
+            } else {
+
+                //Filter files
+                let filteredFiles = files.filter((value) => {
+                    return value.name.charAt(0) != ".";
+                })
+
+                //Start copying
+                filteredFiles.forEach((value) => {
+                    if (value.isDirectory()) {
+                        if (!fs.existsSync(path.join(targetRoot, value.name))) {
+                            fs.mkdirSync(path.join(targetRoot, value.name));
+                        }
+                        cloneDirectory(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
+                    } else {
+                        fs.copyFileSync(path.join(sourceRoot, value.name), path.join(targetRoot, value.name));
+                    }
+                })
+            }
+        })
+    }
+
+    let result = this.manifest.createCheckin(this.commitId, sourceRoot); //Create checkout manifest
+    if (result === true) {
+        cloneDirectory(this.sourceRoot, sourceRoot); //Start cloning
+        new VCS(this.sourceRoot).commit(); //Initalize the target directory
+    }
+}
+
+/*
+ * @description: Get manifests by type. Sorted by creation date. 
+ * @param {Number} option 0 for commits, 1 for checkouts, and 2 for checkins.
+ */
+VCS.prototype.get = function (option) {
+    switch (option) {
+        case 0:
+            return this.manifest.getCommits();
+        case 1:
+            return this.manifest.getCheckouts();
+        case 2:
+            return this.manifest.getCheckins();
+        default:
+            return;
+    }
+}
+
+/*
+ * @description: Update a commit. 
+ * @param {String} id Unique identifier of a commit.
+ * @param {String} field  Field to modifiy. It can be "author", "description", "tag", and "value"
+ * @param {Array | String} value New value to go into the above field.
+ */
+VCS.prototype.updateCommit = function (id, field, value) {
+    this.manifest.updateCommit(id, field, value);
 }
 
 module.exports = VCS;
