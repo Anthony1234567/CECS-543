@@ -105,7 +105,7 @@ app.post('/get/commits', (req, res, next) => {
 app.post('/get/checkins', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        res.send(new VCS(sourceDirectory).get(1));
+        res.send(new VCS(sourceDirectory).get(2));
         res.status(200).end();
     } catch (err) {
         res.status(400).end();
@@ -118,7 +118,7 @@ app.post('/get/checkins', (req, res, next) => {
 app.post('/get/checkouts', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        res.send(new VCS(sourceDirectory).get(2));
+        res.send(new VCS(sourceDirectory).get(1));
         res.status(200).end();
     } catch (err) {
         res.status(400).end();

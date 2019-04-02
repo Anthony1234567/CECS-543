@@ -45,11 +45,11 @@
       switch (actionType) {
         case 'Create Repository':
           actionButton.innerHTML = actionType;
-          actionButton.onclick = "Controller.create()";
+          actionButton.onclick = Controller.create();
           break;
         case 'Check In':
           actionButton.innerHTML = actionType;
-          actionButton.onclick = "Controller.commit()";
+          actionButton.onclick = Controller.commit();
           break;
         case 'Check Out':
           window.alert('Action Type Not Yet Implemented.');
