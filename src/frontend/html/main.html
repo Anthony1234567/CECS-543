@@ -19,7 +19,7 @@
       </button>
 
       <div class="dropdown-content">
-        <a href="javascript:void(0)" onclick="window.alert('Commit')">Commit</a>
+        <a href="javascript:void(0)" onclick="Controller.commit()">Commit</a>
         <a href="javascript:void(0)" onclick="openModal('Check In')">Check In</a>
         <a href="javascript:void(0)" onclick="openModal('Check Out')">Check Out</a>
       </div>
@@ -41,8 +41,8 @@
             style="flex-grow: 1; margin-right: 1em;">
           
           <button 
-            class="button-light"
-            onclick="window.alert('Button Clicked')">
+            id="actionButton"
+            class="button-light">
             Go!
           </button>
         </div>
@@ -62,12 +62,14 @@
       // When the user clicks on <span> (x), close the modal
       span.onclick = function() {
         modal.style.display = 'none';
+        document.getElementById('directory-field').value = '';
       }
 
       // When the user clicks anywhere outside of the modal, close it
       window.onclick = function(event) {
         if (event.target == modal) {
           modal.style.display = 'none';
+          document.getElementById('directory-field').value = '';
         }
       }
     })();
@@ -75,8 +77,24 @@
     function openModal(type) {
       switch (type) {
         case 'Check In':
+          document.getElementById('directory-field').placeholder = 'Enter Source Directory';
+          document.getElementById('actionButton').innerHTML = 'Check In';
+
+          // TODO: Implement call to Controller.checkIn()
+          document.getElementById('actionButton').onclick = function() {
+            window.alert('TODO: Implement call to Controller.checkIn()');
+          }
+
           break;
         case 'Check Out':
+          document.getElementById('directory-field').placeholder = 'Enter Target Directory';
+          document.getElementById('actionButton').innerHTML = 'Check Out';
+
+          // TODO: Implement call to Controller.checkOut()
+          document.getElementById('actionButton').onclick = function() {
+            window.alert('TODO: Implement call to Controller.checkOut()');
+          }
+
           break;
         default:
           console.warn('Unknown Command.');
