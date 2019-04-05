@@ -1,9 +1,9 @@
 /**
-* @author: Chandandeep Thind, Sotheanith Sok, Anthony Martinez 
-* @email: chandandeep.thind@student.csulb.edu, sotheanith.sok@student.csulb.edu, anthony.martinez02@student.csulb.edu 
-* @description: This module contains Express routing services provided by this application. It is reponsible
-* for serving necessary files and handling incoming HTTP requests. 
-*/
+ * @author: Chandandeep Thind, Sotheanith Sok, Anthony Martinez 
+ * @email: chandandeep.thind@student.csulb.edu, sotheanith.sok@student.csulb.edu, anthony.martinez02@student.csulb.edu 
+ * @description: This module contains Express routing services provided by this application. It is reponsible
+ * for serving necessary files and handling incoming HTTP requests. 
+ */
 
 
 /**
@@ -20,13 +20,16 @@ const app = express();
 app.use(express.json());
 app.use('/css', express.static(path.join(__dirname, "src/frontend/css")));
 app.use('/js', express.static(path.join(__dirname, "src/frontend/js")));
+app.use('/html', express.static(path.join(__dirname, "src/frontend/html")));
 
 
 /**
- * Homepage routes.
+ * Homepage routes. 
  */
 app.get('/', (req, res, next) => {
-    res.sendFile('src/frontend/html/controller.html', { root: __dirname });
+    res.sendFile('src/frontend/html/controller.html', {
+        root: __dirname
+    });
 })
 
 /**

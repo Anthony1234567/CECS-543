@@ -130,7 +130,7 @@ function VCS(sourceRoot) {
                             this.manifest.createCommit(this.commitId, path.resolve(targetArtifact))
                         }
 
-                        if (fullCopy) {
+                        if (!fs.existsSync(targetDirectory)) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {
                                 // TODO: Implement some error handling
@@ -254,7 +254,7 @@ VCS.prototype.checkin = function (sourceRoot) {
 
     let result = this.manifest.createCheckin(this.commitId, sourceRoot); //Create checkout manifest
     if (result === true) {
-        cloneDirectory(this.sourceRoot, sourceRoot); //Start cloning
+        cloneDirectory(sourceRoot, this.sourceRoot); //Start cloning
         new VCS(this.sourceRoot).commit(); //Initalize the target directory
     }
 }
