@@ -27,7 +27,7 @@ app.use('/html', express.static(path.join(__dirname, "src/frontend/html")));
  * Homepage routes. 
  */
 app.get('/', (req, res, next) => {
-    res.sendFile('src/frontend/html/controller.html', {
+    res.sendFile('src/frontend/html/input.html', {
         root: __dirname
     });
 })
