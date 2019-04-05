@@ -20,12 +20,7 @@ function create() {
 		}
 	}, (err, req, body) => {
 		if (!err) {
-			if (req.statusCode === 201) {
-				window.alert("Successfully created a reponsitory.");
-			}
-			else {
-				window.alert("Failed to create a commit.");
-			}
+			window.location.href = '/html/main.html?projectRoot=' + encodeURIComponent(document.getElementById('directory-field').value);
 		}
 	})
 }
