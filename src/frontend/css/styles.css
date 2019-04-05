@@ -8,23 +8,34 @@ body {
 } 
 
 input {
-    background-color: #303C41;
-    border-color: #FFFFFF10;
     padding: 12px 20px;
     box-sizing: border-box;
     border-width: thin;
     display: inline-block;
+}
+
+.input-dark {
+    background-color: #303C41;
+    border-color: #FFFFFF10;
     color: #EEFFFF;
 }
 
-::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+.input-dark::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
     color: rgb(113, 130, 132);
 }
 
+.input-light {
+    background-color: #EEEEEE;
+    border-color: #E0E0E0;
+    color: #9EAEB8;
+}
+
+.input-light::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #CAD1D5;
+}
+
 button {
-    background-color: #374649;
     border: none;
-    color: #EEFFFF;
     padding: 15px 0;
     text-align: center;
     text-decoration: none;
@@ -32,9 +43,23 @@ button {
     font-size: 16px;
     width: 10em;
 }
+
+.button-dark {
+    background-color: #374649;
+    color: #EEFFFF;
+}
   
-button:hover {
+.button-dark:hover {
     background-color: rgb(60, 73, 76);
+}
+
+.button-light {
+    background-color: #DCEEEC;
+    color: #F6FAFA;
+}
+  
+.button-light:hover {
+    background-color: #D2EAE6;
 }
 
 i {
@@ -53,12 +78,20 @@ i {
 
 .directory {
     color: #EEFFFF;
+    margin-left: 2em;
+    padding-top: 8px;
 }
 
 .content {
     text-align: center;
     display: flex;
     margin: 15%;
+}
+
+.main-content {
+    text-align: center;
+    display: flex;
+    margin-top: 5em;
 }
 
 .down {
@@ -129,7 +162,7 @@ i {
   
 /* Modal Content */
 .modal-content {
-    background-color: #EEFFFF;
+    background-color: #FAFAFA;
     margin: auto;
     padding: 20px;
     border: 1px solid #888;
@@ -138,15 +171,14 @@ i {
   
 /* The Close Button */
 .close {
-    color: #aaaaaa;
+    color: #BAC6CD;
     float: right;
     font-size: 28px;
     font-weight: bold;
   }
   
-.close:hover,
-.close:focus {
-    color: #000;
+.close:hover, .close:focus {
+    color: #90A3AE;
     text-decoration: none;
     cursor: pointer;
 }
