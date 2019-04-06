@@ -9,7 +9,7 @@
 // Required modules
 const fs = require('fs'); // source: https://nodejs.org/api/fs.html
 const artifactIdService = require('./ArtifactIdService'); // For generating ArtifactId of file
-const manifest = require('./Manifest'); // For tracking
+const manifest = require('./manifest'); // For tracking
 const crypto = require('crypto'); // Generating commit Id
 const path = require('path'); //use to resolve and normalize path to an absolute value
 
@@ -271,6 +271,8 @@ VCS.prototype.get = function (option) {
             return this.manifest.getCheckouts();
         case 2:
             return this.manifest.getCheckins();
+        case 3:
+            return this.manifest.getAll();
         default:
             return;
     }

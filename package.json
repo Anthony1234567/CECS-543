@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build && node index.js",
-    "build": "browserify .\\src\\frontend\\js\\controller.js --standalone Controller > .\\src\\frontend\\js\\controllerB.js"
+    "build": "browserify ./src/frontend/js/controller.js --standalone Controller > ./src/frontend/js/controllerB.js"
   },
   "repository": {
     "type": "git",

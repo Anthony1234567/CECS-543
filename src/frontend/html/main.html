@@ -3,10 +3,11 @@
   <head>
     <title>CECS 543: Version Control System</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
     <script src="../js/controllerB.js"></script>
   </head>
 
-  <body>
+  <body >
     <div 
       id="directory"
       class="directory">
@@ -20,7 +21,7 @@
 
       <div class="dropdown-content">
         <a href="javascript:void(0)" onclick="Controller.commit()">Commit</a>
-        <a href="javascript:void(0)" onclick="openModal('Check In')">Check In</a>
+        <a href="javascript:void(0)" onclick="openModal('Check In')"">Check In</a>
         <a href="javascript:void(0)" onclick="openModal('Check Out')">Check Out</a>
       </div>
     </div>
@@ -43,22 +44,41 @@
           <button 
             id="actionButton"
             class="button-light">
-            Go!
           </button>
         </div>
       </div>
     </div>
-  </body>
+
+    <template>
+      <div class="manifest">
+        <h5 class ="label"></h5>
+        <button class="fas fa-pen manifestButton" onclick="openModal('Change Label')"></i></button>
+        
+      </div> 
+     
+    </template>
+
+    <div id="manifestList" class="manifestList">
+    </div>
+    
+    </body>
+  
 
   <script type="text/javascript">
+
+
+  
     (function() {
+
+      
       // Get the modal
       var modal = document.getElementById('myModal');
       // Get the <span> element that closes the modal
       var span = document.getElementsByClassName('close')[0];
-
       document.getElementById('directory').innerHTML = decodeURIComponent(new URL(window.location.href).searchParams.get('projectRoot'));
-
+    
+      Controller.listManifests();
+      
       // When the user clicks on <span> (x), close the modal
       span.onclick = function() {
         modal.style.display = 'none';
@@ -72,17 +92,21 @@
           document.getElementById('directory-field').value = '';
         }
       }
+
+      
     })();
 
-    function openModal(type) {
+    function openModal(type, manifestId) {
       switch (type) {
         case 'Check In':
           document.getElementById('directory-field').placeholder = 'Enter Source Directory';
           document.getElementById('actionButton').innerHTML = 'Check In';
-
+          
           // TODO: Implement call to Controller.checkIn()
           document.getElementById('actionButton').onclick = function() {
-            window.alert('TODO: Implement call to Controller.checkIn()');
+            Controller.checkIn();
+            Controller.listManifests();
+
           }
 
           break;
@@ -92,9 +116,26 @@
 
           // TODO: Implement call to Controller.checkOut()
           document.getElementById('actionButton').onclick = function() {
-            window.alert('TODO: Implement call to Controller.checkOut()');
+            Controller.checkout();
+            Controller.listManifests();
           }
 
+          break;
+        case 'Change Label':
+          document.getElementById('directory-field').placeholder= 'Enter New Label';
+          document.getElementById('actionButton').innerHTML = 'Change Label';
+
+          
+         
+          let field = "tag";
+          document.getElementById('actionButton').onclick = function()
+          {
+            let label = document.getElementById('directory-field').value;
+            document.getElementById(manifestId).innerText = label; 
+            Controller.updateCommit(manifestId, field, label);        
+            document.getElementById('myModal').style.display = 'none';
+            document.getElementById('directory-field').value = '';
+          }
           break;
         default:
           console.warn('Unknown Command.');
@@ -102,5 +143,9 @@
 
       document.getElementById('myModal').style.display = 'block';
     }
+
+    
+    
+  
   </script>
 </html>

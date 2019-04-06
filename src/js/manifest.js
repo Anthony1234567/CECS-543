@@ -22,13 +22,13 @@ class Manifest {
         if (!check.nonEmptyString(p)) {
             throw new Error("Invalid path to a directory");
         }
-
+        
         this._commits = [];
         this._checkins = [];
         this._checkouts = [];
         this._root = path.join(p, "../")
         this._path = path.resolve(path.join(p, "/Manifests"));
-        this._pathExisted = false;
+        this._pathExistcheckined = false;
 
         //check if folder exist
         let isExist = fs.existsSync(this._path);
@@ -195,21 +195,28 @@ class Manifest {
      * @param {Array | String} value A new value of the field.
      */
     updateCommit(id, field, value) {
+        
         let changed = false;
         //Parameter checking
         if (!check.nonEmptyString(id) || !check.nonEmptyString(field) || !(check.nonEmptyArray(value) || check.nonEmptyString(value))) {
+            
             throw new Error("Invalid parameters");
+            
         }
-
+       
         if (!field === "author" && !field === "description" && !field === "tag" && !field === "values") {
+            
             throw new Error("Unknown field");
         }
+        
         if (this._commits.indexOf(id) <= -1) {
+            
             throw new Error("The target object isn't a commit")
+        
         }
-
+        console.log("error 3");
         let obj = this.readFile(id);
-
+        console.log("error 3");
         switch (field) {
             case "values":
             if(check.nonEmptyString(value)){
@@ -233,13 +240,16 @@ class Manifest {
             }
                 break;
             case "tag":
+                
                 if(check.nonEmptyString(value)){
                     if(check.nonEmptyArray(obj.tag)){
                         obj.tag.push(value);
                         changed = true;
+                        console.log(obj.tag)
                     }else{
                         obj.tag=[value]
                         changed = true;
+                        console.log(obj.tag)
                     }
                 }else if (check.nonEmptyArray(value)){
                     if(!check.nonEmptyArray(obj.tag)){
@@ -263,6 +273,7 @@ class Manifest {
             obj.lastUpdated = Date.now();
             this.writeFile(obj.id, obj);
         } else {
+           
             throw new Error("Invalid parameters");
         }
 
@@ -290,7 +301,7 @@ class Manifest {
             temp.push(this.getItem(e));
         })
         temp.sort((a, b) => {
-            return a.created - b.created;
+            return b.created - a.created;
         })
         return temp;
     }
@@ -321,6 +332,30 @@ class Manifest {
             return a.created - b.created;
         })
         return temp;
+    }
+
+    getAll()
+    {
+        let temp = [];
+
+        this._checkouts.forEach((e) => {
+            temp.push(this.getItem(e));
+        })
+
+        this._checkins.forEach((e) => {
+            temp.push(this.getItem(e));
+        })
+
+        this._commits.forEach((e) => {
+            temp.push(this.getItem(e));
+        })
+
+        temp.sort((a, b) => {
+            return a.created - b.created;
+        })
+        ;
+        return temp;
+
     }
 
     /**

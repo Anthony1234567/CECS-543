@@ -182,3 +182,26 @@ i {
     text-decoration: none;
     cursor: pointer;
 }
+
+
+.manifest
+{
+    display: block;
+
+    
+}
+
+.label
+{
+    color: rgb(242, 250, 249);
+    display: inline;
+    padding-right: .5em
+   
+}
+.manifestButton
+{
+    color: seashell;
+    background: transparent;
+    width:1em;
+    height:.15em;
+}

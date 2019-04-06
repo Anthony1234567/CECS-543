@@ -145,7 +145,23 @@ app.post('/update/commit', (req, res, next) => {
 })
 
 /**
+ * Get all the manifest files 
+ */
+
+ app.post('/get/manifests', (req, res, next)=> {
+     try{
+         let sourceDirectory = req.body.sourceDirectory;
+         res.send(new VCS(sourceDirectory).get(0));
+         req.status(200).end();
+         
+     } catch (err)
+     {
+         res.status(400).end();
+     }
+ })
+
+/**
  * Port to listen to.
  */
-const port = process.env.port || 3000;
+const port = process.env.port || 3006;
 app.listen(port, () => console.log(`Listen to port ${port}`));
