@@ -1,32 +1,29 @@
 <!--
-  @author: Prateechi Singh
-  @description: This is the html file for the controller of this application. 
-                It is suppose to be server to users when they vist our domain
+  @author: Anthony Martinez
+  @email: anthony.martinez02@student.csulb.edu
+  @description: This is the input html and it is reponsible to initalizing a new repository (if applicable)
+                and forward users to main.html where controller located. 
 -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>CECS 543: Version Control System</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <script src="../js/controllerB.js"></script>
-  </head>
 
-  <body>
-    <div class="header">
-      <h1>CECS 543: Version Control System</h1>
-    </div>
+<head>
+  <title>CECS 543: Version Control System</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../js/controllerB.js"></script>
+</head>
 
-    <div class="content">
-      <input 
-        type="text" 
-        id="directory-field" 
-        placeholder="Enter Source Directory"
-        class="input-dark"
-        style="flex-grow: 1; margin-right: 1em;">
-        
-      <button 
-        class="button-dark"
-        onclick="Controller.create()">Open Folder</button>
-    </div>
-  </body>
+<body>
+  <div class="header">
+    <h1>CECS 543: Version Control System</h1>
+  </div>
+
+  <div class="content">
+    <input type="text" id="directory-field" placeholder="Enter Source Directory" class="input-dark"
+      style="flex-grow: 1; margin-right: 1em;">
+
+    <button class="button-dark" onclick="Controller.create()">Open Folder</button>
+  </div>
+</body>
+
 </html>

@@ -1,6 +1,6 @@
 /**
- * @author: Chandandeep Thind, Sotheanith Sok, Anthony Martinez 
- * @email: chandandeep.thind@student.csulb.edu, sotheanith.sok@student.csulb.edu, anthony.martinez02@student.csulb.edu 
+ * @author: Anthony Martinez, Chandandeep Thind,Sotheanith Sok, Yashua Ovando
+ * @email: anthony.martinez02@student.csulb.edu, chandandeep.thind@student.csulb.edu, sotheanith.sok@student.csulb.edu, yashua.ovando@student.csulb.edu 
  * @description: This module contains Express routing services provided by this application. It is reponsible
  * for serving necessary files and handling incoming HTTP requests. 
  */
@@ -38,11 +38,9 @@ app.get('/', (req, res, next) => {
 app.post('/create', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        console.log('source directory: ' + sourceDirectory);
         new VCS(sourceDirectory).init();
         res.status(201).end();
     } catch (err) {
-        console.log('error: ' + err);
         res.status(400).end();
     }
 })
@@ -129,15 +127,15 @@ app.post('/get/checkouts', (req, res, next) => {
 })
 
 /**
- * Update a commit route.
+ * Update a manifest route.
  */
-app.post('/update/commit', (req, res, next) => {
+app.post('/update', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
         let id = req.body.id;
         let field = req.body.field;
         let value = req.body.value
-        new VCS(sourceDirectory).updateCommit(id, field, value);
+        new VCS(sourceDirectory).updateManifest(id, field, value);
         res.status(200).end();
     } catch (err) {
         res.status(400).end();
@@ -148,20 +146,19 @@ app.post('/update/commit', (req, res, next) => {
  * Get all the manifest files 
  */
 
- app.post('/get/manifests', (req, res, next)=> {
-     try{
-         let sourceDirectory = req.body.sourceDirectory;
-         res.send(new VCS(sourceDirectory).get(0));
-         req.status(200).end();
-         
-     } catch (err)
-     {
-         res.status(400).end();
-     }
- })
+app.post('/get/manifests', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        res.send(new VCS(sourceDirectory).get(3));
+        req.status(200).end();
+
+    } catch (err) {
+        res.status(400).end();
+    }
+})
 
 /**
  * Port to listen to.
  */
-const port = process.env.port || 3006;
+const port = process.env.port || 3000;
 app.listen(port, () => console.log(`Listen to port ${port}`));

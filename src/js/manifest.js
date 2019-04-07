@@ -1,9 +1,9 @@
 /**
-* @author: Sotheanith Sok
-* @email: sotheanith.sok@student.csulb.edu
-* @description: This module provides functionality that allows the generation
-* and updation of manifest file.  
-*/
+ * @author: Sotheanith Sok, Yashua Ovando
+ * @email: sotheanith.sok@student.csulb.edu, yashua.ovando@student.csulb.edu
+ * @description: This module provides functionality that allows the generation
+ * and updation of manifest file.  
+ */
 
 //imports 
 const fs = require("fs");
@@ -22,7 +22,7 @@ class Manifest {
         if (!check.nonEmptyString(p)) {
             throw new Error("Invalid path to a directory");
         }
-        
+
         this._commits = [];
         this._checkins = [];
         this._checkouts = [];
@@ -35,19 +35,21 @@ class Manifest {
 
         //If it exist, begin reading the files
         if (isExist) {
-            let readFiles = fs.readdirSync(this._path, { withFileTypes: "true" });
+            let readFiles = fs.readdirSync(this._path, {
+                withFileTypes: "true"
+            });
             let files = readFiles.filter(item => item.isFile());
             files.forEach((file) => {
-                let obj = this.readFile(file.name.slice(0, -5));//Remove extension from files
+                let obj = this.readFile(file.name.slice(0, -5)); //Remove extension from files
                 switch (obj.command) {
                     case "commit":
                         this._commits.push(obj.id); //Push commits item into its array
                         break;
                     case "checkin":
-                        this._checkins.push(obj.id);//Push checkins item into its array
+                        this._checkins.push(obj.id); //Push checkins item into its array
                         break;
                     case "checkout":
-                        this._checkouts.push(obj.id);//Push checkouts item into its array
+                        this._checkouts.push(obj.id); //Push checkouts item into its array
                         break;
                     default:
                         throw new Error("Unknown file type");
@@ -189,74 +191,68 @@ class Manifest {
     }
 
     /**
-     * Update commit.
+     * Update a manifest.
      * @param {String} id Unique indetifer of a commit.
      * @param {"author" | "description" | "tag" | "values"} field Field of the commit to modify.
      * @param {Array | String} value A new value of the field.
      */
-    updateCommit(id, field, value) {
-        
+    updateManifest(id, field, value) {
+
         let changed = false;
         //Parameter checking
         if (!check.nonEmptyString(id) || !check.nonEmptyString(field) || !(check.nonEmptyArray(value) || check.nonEmptyString(value))) {
-            
             throw new Error("Invalid parameters");
-            
         }
-       
+
         if (!field === "author" && !field === "description" && !field === "tag" && !field === "values") {
-            
             throw new Error("Unknown field");
         }
-        
-        if (this._commits.indexOf(id) <= -1) {
-            
-            throw new Error("The target object isn't a commit")
-        
+
+        if (field === "values" && this._commits.indexOf(id) <= -1) {
+            throw new Error("You can't edit the value of non-commit manifest");
         }
-        console.log("error 3");
+        if (this._commits.indexOf(id) <= -1 && this._checkins.indexOf(id) <= -1 && this._checkouts.indexOf(id) <= -1) {
+            throw new Error("You can't edit the value of non-commit manifest");
+        }
+
         let obj = this.readFile(id);
-        console.log("error 3");
         switch (field) {
             case "values":
-            if(check.nonEmptyString(value)){
-                if(check.nonEmptyArray(obj.values)){
-                    obj.values.push(value);
-                    changed = true;
-                }else{
-                    obj.values=[value]
-                    changed = true;
-                }
-            }else if (check.nonEmptyArray(value)){
-                if(!check.nonEmptyArray(obj.values)){
-                    obj.values=[];
-                }
-                value.forEach((element)=>{
-                    if(check.nonEmptyString(element)){
-                        obj.values.push(element);
+                if (check.nonEmptyString(value)) {
+                    if (check.nonEmptyArray(obj.values)) {
+                        obj.values.push(value);
+                        changed = true;
+                    } else {
+                        obj.values = [value]
                         changed = true;
                     }
-                })
-            }
+                } else if (check.nonEmptyArray(value)) {
+                    if (!check.nonEmptyArray(obj.values)) {
+                        obj.values = [];
+                    }
+                    value.forEach((element) => {
+                        if (check.nonEmptyString(element)) {
+                            obj.values.push(element);
+                            changed = true;
+                        }
+                    })
+                }
                 break;
             case "tag":
-                
-                if(check.nonEmptyString(value)){
-                    if(check.nonEmptyArray(obj.tag)){
+                if (check.nonEmptyString(value)) {
+                    if (check.nonEmptyArray(obj.tag)) {
                         obj.tag.push(value);
                         changed = true;
-                        console.log(obj.tag)
-                    }else{
-                        obj.tag=[value]
+                    } else {
+                        obj.tag = [value]
                         changed = true;
-                        console.log(obj.tag)
                     }
-                }else if (check.nonEmptyArray(value)){
-                    if(!check.nonEmptyArray(obj.tag)){
-                        obj.tag=[];
+                } else if (check.nonEmptyArray(value)) {
+                    if (!check.nonEmptyArray(obj.tag)) {
+                        obj.tag = [];
                     }
-                    value.forEach((element)=>{
-                        if(check.nonEmptyString(element)){
+                    value.forEach((element) => {
+                        if (check.nonEmptyString(element)) {
                             obj.tag.push(element);
                             changed = true;
                         }
@@ -273,7 +269,7 @@ class Manifest {
             obj.lastUpdated = Date.now();
             this.writeFile(obj.id, obj);
         } else {
-           
+
             throw new Error("Invalid parameters");
         }
 
@@ -334,8 +330,10 @@ class Manifest {
         return temp;
     }
 
-    getAll()
-    {
+    /**
+     * Get all manifests sorted by creation date.
+     */
+    getAll() {
         let temp = [];
 
         this._checkouts.forEach((e) => {
@@ -352,8 +350,7 @@ class Manifest {
 
         temp.sort((a, b) => {
             return a.created - b.created;
-        })
-        ;
+        });
         return temp;
 
     }

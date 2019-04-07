@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run build && node index.js",
-    "build": "browserify ./src/frontend/js/controller.js --standalone Controller > ./src/frontend/js/controllerB.js"
+    "start": "npm run-script buildWin && node index.js",
+    "build": "browserify ./src/frontend/js/controller.js --standalone Controller > ./src/frontend/js/controllerB.js",
+    "buildWin": "browserify .\\src\\frontend\\js\\controller.js --standalone Controller > .\\src\\frontend\\js\\controllerB.js"
   },
   "repository": {
     "type": "git",

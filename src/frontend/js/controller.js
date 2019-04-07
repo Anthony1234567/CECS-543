@@ -1,14 +1,17 @@
 /**
-* @author: Prateechi Singh
-* @email: prateechi.singh@student.csulb.edu
-* @description: This is the javascript file for the controller.html and it contains functionalites necessary
-* for such html file. However, this file will not work in the browser as it still needs to go through conversion process
-* to make it browser compatible.  
-*/
+ * @author: Anthony Martinez, Prateechi Singh, Yashua Ovando
+ * @email: anthony.martinez02@student.csulb.edu, prateechi.singh@student.csulb.edu, yashua.ovando@student.csulb.edu
+ * @description: This is the javascript file for input.html and main.input and it contains functionalites necessary
+ * for such html file. However, this file will not work in the browser as it still needs to go through conversion process
+ * to make it browser compatible.  
+ */
 
 
 //Library
-const request = require('request').defaults({ baseUrl: 'http://localhost:3006/', json: true })
+const request = require('request').defaults({
+	baseUrl: 'http://localhost:3000/',
+	json: true
+})
 
 /**
  * Make to http call to create a new repository.
@@ -18,7 +21,7 @@ function create() {
 		body: {
 			sourceDirectory: document.getElementById('directory-field').value
 		}
-	}, (err, req, body) => {
+	}, (err, res, body) => {
 		if (!err) {
 			window.location.href = '/html/main.html?projectRoot=' + encodeURIComponent(document.getElementById('directory-field').value);
 		}
@@ -33,143 +36,213 @@ function commit() {
 		body: {
 			sourceDirectory: document.getElementById('directory').innerHTML
 		}
-	}, (err, req, body) => {
+	}, (err, res, body) => {
 		if (!err) {
-			if (req.statusCode === 200) {
+			if (res.statusCode === 200) {
 				window.alert("Successfully created a commit.");
-			}
-			else {
-				window.prompt("Failed to create a commit.");
+				listManifests();
+			} else {
+				window.alert("Failed to create a commit.");
 			}
 		}
 	})
-
 }
 
-function checkIn()
-{
+/**
+ * Make a http call to checkin into a repository
+ */
+function checkIn() {
 	request.post('/checkin', {
 		body: {
 			sourceDirectory: document.getElementById('directory-field').value,
 			targetDirectory: document.getElementById('directory').innerHTML
 		}
-	}, (err, req, body) => {
-		if(!err) {
-			if (req.statusCode===200) {
-			window.alert("Successfully Checked-In");
+	}, (err, res, body) => {
+		if (!err) {
+			if (res.statusCode === 200) {
+				window.alert("Successfully Checked-In");
+				listManifests();
+			} else {
+				window.alert("Failed to check-in");
 			}
-			else {
-			window.prompt("Failed to check-in");
-			}
-			
+
 		}
 	})
 }
 
-function checkout()
-{
+/**
+ * Make a http call to checkout of a given repostiory
+ */
+function checkout() {
 	request.post('/checkout', {
 		body: {
 			sourceDirectory: document.getElementById('directory').innerHTML,
 			targetDirectory: document.getElementById('directory-field').value
 		}
-	}, (err, req, body) => {
-		if(!err) {
-			if (req.statusCode===200) {
-			window.alert("Successfully Checked-Out");
+	}, (err, res, body) => {
+		if (!err) {
+			if (res.statusCode === 200) {
+				window.alert("Successfully Checked-Out");
+				listManifests();
+			} else {
+				window.alert("Failed to check-out");
 			}
-			else {
-			window.prompt("Failed to check-out");
-			}
-			
+
 		}
 	})
 }
 
-function updateCommit(manifestId, field, label)
-{
-	
-	request.post('/update/commit', {
+/**
+ * Make a http call to update a manifest
+ * @param {*} manifestId commitID
+ * @param {*} field which field to makes change to 
+ * @param {*} value new values
+ */
+function updateManifest(manifestId, field, value) {
+	request.post('/update', {
 		body: {
 			sourceDirectory: document.getElementById('directory').innerText,
 			id: manifestId,
 			field: field,
-			value: label
-
+			value: value
 		}
-	}, (err, req, body) => {
-		if(!err) {
-			if (req.statusCode===200) {
-			window.alert("Successfully Updated Commit");
+	}, (err, res, body) => {
+		if (!err) {
+			if (res.statusCode === 200) {
+				window.alert("Successfully Updated Commit");
+			} else {
+				window.alert("Failed to update commit");
 			}
-			else {
-			window.prompt("Failed to update commit");
-			}
-			
+
 		}
 	})
 }
 
 
-function listManifests()
-{
+/**
+ * Make a http call to get all manifests and update views based on the return result
+ */
+function listManifests() {
 	request.post('/get/manifests', {
-		body:
-			{
-				sourceDirectory: document.getElementById('directory').innerHTML
-			}
-	 	}, (err, req, body) => {
-			if(!err) {
-				
-				if (req.statusCode === 200){
-
-					updatingPage(body);
-		
-						
+		body: {
+			sourceDirectory: document.getElementById('directory').innerHTML
+		}
+	}, (err, res, body) => {
+		if (!err) {
+			if (res.statusCode === 200) {
+				//Clear old lists
+				while (document.getElementById('manifestList').hasChildNodes()) {
+					document.getElementById('manifestList').removeChild(document.getElementById('manifestList').childNodes[0]);
 				}
-				else {
+
+				//Update manifest lists
+				body.forEach((element) => {
+					var temp = document.getElementsByTagName("template")[0];
+					var clone = temp.content.cloneNode(true);
+					clone.querySelector('h5').id = element.id;
+
+					if (element.tag === null) {
+						clone.querySelector('h5').innerText = element.id;
+					} else {
+						let size = Object.keys(element.tag).length;
+						clone.querySelector('h5').innerText = element.tag[size - 1];
+					}
+					clone.querySelector('button').onclick = function () {
+						openModal('Change Label', element.id);
+					}
+					document.getElementById('manifestList').appendChild(clone);
+				})
+			} else {
 				window.prompt("Failed to check-in");
-				}
-				
 			}
-		})
+		}
+	})
 }
 
+/**
+ * Initalize the main.html and it will be call when main.html is loaded
+ */
+function initalizeMain() {
+	// Get the modal
+	var modal = document.getElementById('myModal');
+	// Get the <span> element that closes the modal
+	var span = document.getElementsByClassName('close')[0];
+	document.getElementById('directory').innerHTML = decodeURIComponent(new URL(window.location.href).searchParams.get('projectRoot'));
 
+	Controller.listManifests();
 
-function updatingPage(body)
-{
-	
-	for(let i =0; i<body.length; i++)
-	{
-		var temp = document.getElementsByTagName("template")[0];
-		var clone = temp.content.cloneNode(true);
-		clone.querySelector('h5').id = body[i].id;
-		
+	// When the user clicks on <span> (x), close the modal
+	span.onclick = function () {
+		modal.style.display = 'none';
+		document.getElementById('directory-field').value = '';
+	}
 
-		if(body[i].tag === null)
-		{
-			clone.querySelector('h5').innerText = body[i].id;
+	// When the user clicks anywhere outside of the modal, close it
+	window.onclick = function (event) {
+		if (event.target == modal) {
+			modal.style.display = 'none';
+			document.getElementById('directory-field').value = '';
 		}
-		else
-		{
-			let size = Object.keys(body[i].tag).length;
-			clone.querySelector('h5').innerText = body[i].tag[size-1];
-		}
-		clone.querySelector('button').onclick = function() {
-			openModal('Change Label', body[i].id);
-		}
-		document.getElementById('manifestList').appendChild(clone);
-	};
-	
+	}
 }
-	
 
+/**
+ * Open the modal to allows user to input  value
+ * @param {*} type type of model
+ * @param {*} manifestId manifest id
+ */
+function openModal(type, manifestId) {
+	switch (type) {
+		case 'Check In':
+			document.getElementById('directory-field').placeholder = 'Enter Source Directory';
+			document.getElementById('actionButton').innerHTML = 'Check In';
+
+			// TODO: Implement call to Controller.checkIn()
+			document.getElementById('actionButton').onclick = function () {
+				Controller.checkIn();
+				Controller.listManifests();
+			}
+
+			break;
+		case 'Check Out':
+			document.getElementById('directory-field').placeholder = 'Enter Target Directory';
+			document.getElementById('actionButton').innerHTML = 'Check Out';
+
+			// TODO: Implement call to Controller.checkOut()
+			document.getElementById('actionButton').onclick = function () {
+				Controller.checkout();
+				Controller.listManifests();
+			}
+
+			break;
+		case 'Change Label':
+			document.getElementById('directory-field').placeholder = 'Enter New Label';
+			document.getElementById('actionButton').innerHTML = 'Change Label';
+			let field = "tag";
+			document.getElementById('actionButton').onclick = function () {
+				let label = document.getElementById('directory-field').value;
+				document.getElementById(manifestId).innerText = label;
+				Controller.updateManifest(manifestId, field, label);
+				document.getElementById('myModal').style.display = 'none';
+				document.getElementById('directory-field').value = '';
+			}
+			break;
+		default:
+			console.warn('Unknown Command.');
+	}
+	document.getElementById('myModal').style.display = 'block';
+}
+
+/**
+ * Exposed variables and functions
+ */
 module.exports = {
 	create: create,
 	commit: commit,
 	checkIn: checkIn,
 	checkout: checkout,
 	listManifests: listManifests,
-	updateCommit: updateCommit
+	updateManifest: updateManifest,
+	initalizeMain: initalizeMain,
+	openModal: openModal
 }

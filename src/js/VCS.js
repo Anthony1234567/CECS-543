@@ -1,9 +1,9 @@
 /**
-* @author: Anthony Martinez
-* @email: anthony.martinez02@student.csulb.edu
-* @description: This module contains the implementation of version control system functinoalities 
-* including intitalization, commit, and so on. It uses functionalities provided by the manifest and ArtifactIdService moduels.
-*/
+ * @author: Anthony Martinez, Sotheanith Sok, Yashua Ovando
+ * @email: anthony.martinez02@student.csulb.edu, sotheanith.sok@student.csulb.edu, yashua.ovando@student.csulb.edu
+ * @description: This module contains the implementation of version control system functinoalities 
+ * including intitalization, commit, and so on. It uses functionalities provided by the manifest and ArtifactIdService moduels.
+ */
 
 
 // Required modules
@@ -19,9 +19,13 @@ const path = require('path'); //use to resolve and normalize path to an absolute
  *               Copies main directory contents into vcs and creates artifact structure
  */
 VCS.prototype.init = function () {
-    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
+    fs.readdir(this.sourceRoot, {
+        withFileTypes: true
+    }, (error, directoryContents) => {
         // TODO: Implement some error handling
-        if (error) { throw error; }
+        if (error) {
+            throw error;
+        }
 
         if (directoryContents.find((file) => file.name === this.vcsFileName)) {
             console.error('Init failed: This directory has already been initialized.');
@@ -32,7 +36,9 @@ VCS.prototype.init = function () {
 
             fs.mkdir(targetRoot, (error) => {
                 // TODO: Implement some error handling
-                if (error) { throw error; }
+                if (error) {
+                    throw error;
+                }
 
                 this.breadthFirstTraverse(this.sourceRoot, targetRoot, true);
             });
@@ -46,9 +52,13 @@ VCS.prototype.init = function () {
  */
 VCS.prototype.commit = function () {
 
-    fs.readdir(this.sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
+    fs.readdir(this.sourceRoot, {
+        withFileTypes: true
+    }, (error, directoryContents) => {
         // TODO: Implement some error handling
-        if (error) { throw error; }
+        if (error) {
+            throw error;
+        }
 
         if (!directoryContents.find((file) => file.name === this.vcsFileName)) {
             console.error('Commit failed: Directory has not been initialized.');
@@ -69,18 +79,18 @@ function VCS(sourceRoot) {
     this.commitId = crypto.randomBytes(8).toString('hex');
 
     /*
-    * @description: Implements simplified Breadth-first search recursive 
-    *               algorithm to traverse project tree
-    *               - Initial traversal through project tree (no .git/.vsc subdirectory)
-    *                 meathod will create subdirectory [target] and replicate contents of 
-    *                 source into it replacing files with artifact structures
-    *               - For commits, meathod looks for .git/.vcs subdirectory to use as target
-    * @param: sourceRoot - path to source directory root
-    * @param: targetRoot - path to target directory root
-    * @param: fullCopy - if true, copy the entire structure of source to target.
-    *                    Otherwise only the creates an artifact 
-    * Source: https://en.wikipedia.org/wiki/Breadth-first_search
-    */
+     * @description: Implements simplified Breadth-first search recursive 
+     *               algorithm to traverse project tree
+     *               - Initial traversal through project tree (no .git/.vsc subdirectory)
+     *                 meathod will create subdirectory [target] and replicate contents of 
+     *                 source into it replacing files with artifact structures
+     *               - For commits, meathod looks for .git/.vcs subdirectory to use as target
+     * @param: sourceRoot - path to source directory root
+     * @param: targetRoot - path to target directory root
+     * @param: fullCopy - if true, copy the entire structure of source to target.
+     *                    Otherwise only the creates an artifact 
+     * Source: https://en.wikipedia.org/wiki/Breadth-first_search
+     */
     this.breadthFirstTraverse = function (sourceRoot, targetRoot, fullCopy) {
         console.log('sourceRoot: ' + sourceRoot);
         console.log('targetRoot: ' + targetRoot);
@@ -89,9 +99,13 @@ function VCS(sourceRoot) {
         // Can ensure all subsequent calls will be made on directories 
         // thanks to fs.readdir option parameter which can help 
         // get file types along with contents.
-        fs.readdir(sourceRoot, { withFileTypes: true }, (error, directoryContents) => {
+        fs.readdir(sourceRoot, {
+            withFileTypes: true
+        }, (error, directoryContents) => {
             // TODO: Implement some error handling
-            if (error) { throw error; }
+            if (error) {
+                throw error;
+            }
 
             directoryContents.forEach((fileOrDirectory) => {
                 console.log('fileOrDirectory: ' + fileOrDirectory.name);
@@ -109,7 +123,9 @@ function VCS(sourceRoot) {
                         if (fullCopy) {
                             fs.mkdir(target, (error) => {
                                 // TODO: Implement some error handling
-                                if (error) { throw error; }
+                                if (error) {
+                                    throw error;
+                                }
 
                                 this.breadthFirstTraverse(source, target, fullCopy);
                             });
@@ -125,7 +141,7 @@ function VCS(sourceRoot) {
                         const targetArtifact = targetRoot + '/' + fileName + '/' + artifactIdService.artifactID(sourceFile) + '.txt'; // Build artifactId
 
                         if (this.manifest.isItemExist(this.commitId)) {
-                            this.manifest.updateCommit(this.commitId, "values", path.resolve(targetArtifact));
+                            this.manifest.updateManifest(this.commitId, "values", path.resolve(targetArtifact));
                         } else {
                             this.manifest.createCommit(this.commitId, path.resolve(targetArtifact))
                         }
@@ -134,13 +150,17 @@ function VCS(sourceRoot) {
                             // Create directory with name of file
                             fs.mkdir(targetDirectory, (error) => {
                                 // TODO: Implement some error handling
-                                if (error) { throw error; }
+                                if (error) {
+                                    throw error;
+                                }
 
                                 // Move file into new directory
                                 // Replace file name with artifactId    
                                 fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                     // TODO: Implement some error handling
-                                    if (error) { throw error; }
+                                    if (error) {
+                                        throw error;
+                                    }
                                 });
                             });
                         } else {
@@ -150,7 +170,9 @@ function VCS(sourceRoot) {
                                     // Replace file name with artifactId    
                                     fs.copyFile(sourceFile, targetArtifact, fs.constants.COPYFILE_EXCL, (error) => {
                                         // TODO: Implement some error handling
-                                        if (error) { throw error; }
+                                        if (error) {
+                                            throw error;
+                                        }
                                     });
                                 } else {
                                     console.log('Target Artifact already exists for this version of source: ' + sourceFile + '. No new artifact will be created for this file.');
@@ -173,6 +195,11 @@ function VCS(sourceRoot) {
  */
 VCS.prototype.checkout = function (targetRoot) {
 
+    //Prevent same directory checkin
+    if (path.resolve(targetRoot) === path.resolve(this.sourceRoot)) {
+        throw new Error("Can't checkin to the same folder.")
+    }
+
     /**
      * Clone directory. It will only copy files do not exist in the target directory. 
      * @param {String} sourceRoot Source directory
@@ -181,7 +208,9 @@ VCS.prototype.checkout = function (targetRoot) {
     let cloneDirectory = function (sourceRoot, targetRoot) {
 
         //Read a directory
-        fs.readdir(sourceRoot, { withFileTypes: true }, (err, files) => {
+        fs.readdir(sourceRoot, {
+            withFileTypes: true
+        }, (err, files) => {
             if (err) {
                 console.log(err);
             } else {
@@ -219,6 +248,11 @@ VCS.prototype.checkout = function (targetRoot) {
  */
 VCS.prototype.checkin = function (sourceRoot) {
 
+    //Prevent same directory checkin
+    if (path.resolve(sourceRoot) === path.resolve(this.sourceRoot)) {
+        throw new Error("Can't checkin to the same folder.")
+    }
+
     /**
      * Clone directory. It will only copy files do not exist in the target directory. 
      * @param {String} sourceRoot Source directory
@@ -227,7 +261,9 @@ VCS.prototype.checkin = function (sourceRoot) {
     let cloneDirectory = function (sourceRoot, targetRoot) {
 
         //Read a directory
-        fs.readdir(sourceRoot, { withFileTypes: true }, (err, files) => {
+        fs.readdir(sourceRoot, {
+            withFileTypes: true
+        }, (err, files) => {
             if (err) {
                 console.log(err);
             } else {
@@ -261,7 +297,7 @@ VCS.prototype.checkin = function (sourceRoot) {
 
 /*
  * @description: Get manifests by type. Sorted by creation date. 
- * @param {Number} option 0 for commits, 1 for checkouts, and 2 for checkins.
+ * @param {Number} option 0 for commits, 1 for checkouts, 2 for checkins, and 3 for all.
  */
 VCS.prototype.get = function (option) {
     switch (option) {
@@ -284,8 +320,8 @@ VCS.prototype.get = function (option) {
  * @param {String} field  Field to modifiy. It can be "author", "description", "tag", and "value"
  * @param {Array | String} value New value to go into the above field.
  */
-VCS.prototype.updateCommit = function (id, field, value) {
-    this.manifest.updateCommit(id, field, value);
+VCS.prototype.updateManifest = function (id, field, value) {
+    this.manifest.updateManifest(id, field, value);
 }
 
 module.exports = VCS;
