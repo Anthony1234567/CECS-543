@@ -324,4 +324,55 @@ VCS.prototype.updateManifest = function (id, field, value) {
     this.manifest.updateManifest(id, field, value);
 }
 
+VCS.prototype.mergeOut=function (target){
+    let sourceManifests=this.manifest.getAll();
+    let targetManifests= new VCS(target).manifest.getAll();
+
+    let latestSourceManifest= sourceManifests[sourceManifests.length-1];
+    let latestTargetManifest= targetManifests[targetManifests-1];
+
+    //Find grandparent
+    let index=-1;
+    sourceManifests.forEach( (e,i)=>{
+        if(e.command!=="commit" && (e.argument.source===path.resolve(target)||e.argument.target===path.resolve(target))){
+            index=i-1;
+        }
+    })
+    let grandparentManifest= sourceManifests[index];
+
+    //Copy to merging bench 
+    grandparentManifest.values.forEach((e)=>{
+        let splitPath=e.substring(0,e.length-19).split(".psa");
+        let targetDir=path.resolve(path.join(this.sourceRoot,".psa","mergingBench",splitPath[1])) 
+        if (!fs.existsSync(targetDir)){
+            fs.mkdirSync(targetDir,{recursive:true})
+        }
+        fs.copyFileSync(e, path.join(targetDir,e.slice(-19)))
+    })
+
+    //Copy from latest source
+    latestSourceManifest.values.forEach((e)=>{
+        let splitPath=e.substring(0,e.length-19).split(".psa");
+        let targetDir=path.resolve(path.join(this.sourceRoot,".psa","mergingBench",splitPath[1])) 
+        if (!fs.existsSync(targetDir)){
+            fs.mkdirSync(targetDir,{recursive:true})
+        }
+        fs.copyFileSync(e, path.join(targetDir,e.slice(-19)))
+    })
+
+    //Copy from latestTarget
+    latestTargetManifest.values.forEach((e)=>{
+        let splitPath=e.substring(0,e.length-19).split(".psa");
+        let targetDir=path.resolve(path.join(this.sourceRoot,".psa","mergingBench",splitPath[1])) 
+        if (!fs.existsSync(targetDir)){
+            fs.mkdirSync(targetDir,{recursive:true})
+        }
+        fs.copyFileSync(e, path.join(targetDir,e.slice(-19)))
+    })
+
+}
+VCS.prototype.mergeIn=function (target){
+
+}
+
 module.exports = VCS;
