@@ -157,6 +157,18 @@ app.post('/get/manifests', (req, res, next) => {
     }
 })
 
+app.post('/mergeout', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        let targetDirectory = req.body.targetDirectory;
+        new VCS(sourceDirectory).mergeOut(targetDirectory)
+        res.status(200).end();
+    } catch (err) {
+        console.log(err);
+        res.status(400).end();
+    }
+})
+
 /**
  * Port to listen to.
  */
