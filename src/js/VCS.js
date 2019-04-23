@@ -324,30 +324,152 @@ VCS.prototype.updateManifest = function (id, field, value) {
     this.manifest.updateManifest(id, field, value);
 }
 
-VCS.prototype.mergeOut=function (target){
-    let sourceManifests=this.manifest.getAll();
-    let targetManifests= new VCS(target).manifest.getAll();
+VCS.prototype.mergeOut = function (target) {
 
-    let latestSourceManifest= sourceManifests.reverse().find(e=>{
-        return e.command==="commit";
+    //Finding manifests of granparent, source, target
+    let sourceManifests = this.manifest.getAll();
+    let targetManifests = new VCS(target).manifest.getAll();
+    let latestSourceManifest = sourceManifests.reverse().find(e => {
+        return e.command === "commit";
     });
-    let latestTargetManifest= targetManifests.reverse().find(e=>{
-        return e.command==="commit";
+    let latestTargetManifest = targetManifests.reverse().find(e => {
+        return e.command === "commit";
     });
-
-    //Find grandparent
-    let index=-1;
-
-    let c = sourceManifests.find( (e,i)=>{
-        if ((e.command==="checkin"||e.command==="checkout") && (e.argument.source===path.resolve(target)||e.argument.target===path.resolve(target))){
-            index= i;
+    let index = -1;
+    let c = sourceManifests.find((e, i) => {
+        if ((e.command === "checkin" || e.command === "checkout") && (e.argument.source === path.resolve(target) || e.argument.target === path.resolve(target))) {
+            index = i;
             return e;
         }
     })
-    let grandparentManifest=(c.command==="checkin")? sourceManifests[index-1]:sourceManifests[index+1];
+    if (index === -1) {
+        throw new Error("Grandparent manifest can't be found.")
+    }
+    let grandparentManifest = (c.command === "checkin") ? sourceManifests[index - 1] : sourceManifests[index + 1];
+
+
+    //Copy manifests related to the above manifests
+    grandparentManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MG" + parsedPath.ext));
+    })
+
+    latestSourceManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MR" + parsedPath.ext));
+    })
+
+    latestTargetManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MT" + parsedPath.ext));
+    })
+
+
+    //Generate merge documents
+    let mergesData = []
+
+    function formMergeData(p) {
+        let files = fs.readdirSync(p, {
+            withFileTypes: true
+        });
+
+
+        let mergeFragments = files.filter(value => value.isFile());
+
+        let temp = {}
+
+        mergeFragments.forEach(value => {
+            let fileData = path.parse(path.join(p, value.name))
+            if (fileData.name.endsWith("_MG")) {
+                temp.fileGrandparent = path.join(p, value.name)
+            } else if (fileData.name.endsWith("_MR")) {
+                temp.fileSource = path.join(p, value.name);
+            } else if (fileData.name.endsWith("_MT")) {
+                temp.fileTarget = path.join(p, value.name);
+            }
+        })
+
+        let nameOfFileGrandpranet = (temp.fileGrandparent != undefined) ? path.parse(temp.fileGrandparent).name : String(undefined);
+        let nameOfFileSource = (temp.fileSource != undefined) ? path.parse(temp.fileSource).name : String(undefined);
+        let nameOfFileTarget = (temp.fileTarget != undefined) ? path.parse(temp.fileTarget).name : String(undefined);
+
+
+        if (nameOfFileSource.toString().substring(0, nameOfFileSource.length - 3) !== nameOfFileTarget.toString().substring(0, nameOfFileTarget.length - 3)) {
+
+            if (nameOfFileGrandpranet.toString().substring(0, nameOfFileGrandpranet.length - 3) === nameOfFileSource.toString().substring(0, nameOfFileSource.length - 3)) {
+                let mergeType = "Target"
+                if (temp.fileTarget === undefined) {
+                    mergeType += "-Remove"
+                } else if (temp.fileSource === undefined) {
+                    mergeType += "-Add"
+                } else {
+                    mergeType += "-Update"
+                }
+
+                mergesData.push({
+                    mergeType: mergeType,
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null
+                })
+            } else if (nameOfFileGrandpranet.toString().substring(0, nameOfFileGrandpranet.length - 3) === nameOfFileTarget.toString().substring(0, nameOfFileTarget.length - 3)) {
+                let mergeType = "Source"
+                if (temp.fileSource === undefined) {
+                    mergeType += "-Remove"
+                } else if (temp.fileTarget === undefined) {
+                    mergeType += "-Add"
+                } else {
+                    mergeType += "-Update"
+                }
+
+                mergesData.push({
+                    mergeType: mergeType,
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null
+                })
+            } else {
+                mergesData.push({
+                    mergeType: "Conflict",
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null
+
+                })
+            }
+        }
+
+        //Nested down the directory
+        let directories = files.filter(value => value.isDirectory());
+        directories.forEach(value => formMergeData(path.join(p, value.name)))
+
+
+
+
+    }
+    formMergeData(path.join(this.sourceRoot, ".psa/.mergeSpace/"))
+
+    fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
+        recursive: true
+    });
 
 }
-VCS.prototype.mergeIn=function (target){
+VCS.prototype.mergeIn = function (target) {
 
 }
 
