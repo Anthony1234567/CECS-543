@@ -13,7 +13,7 @@ const manifest = require('./manifest'); // For tracking
 const crypto = require('crypto'); // Generating commit Id
 const path = require('path'); //use to resolve and normalize path to an absolute value
 
-/*
+/**
  * @description: Initialization method. 
  *               Creates vcs hidden subdirectory for tracking changes
  *               Copies main directory contents into vcs and creates artifact structure
@@ -46,7 +46,7 @@ VCS.prototype.init = function () {
     });
 };
 
-/*
+/**
  * @description: Commit method. 
  *               Creates vcs hidden subdirectory for tracking changes
  */
@@ -71,14 +71,17 @@ VCS.prototype.commit = function () {
 };
 
 
-
+/**
+ * Default constructor of VCS
+ * @param {String} sourceRoot the source directory
+ */
 function VCS(sourceRoot) {
     this.sourceRoot = sourceRoot;
     this.vcsFileName = '.psa'; // VSC file [target] name
     this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/');
     this.commitId = crypto.randomBytes(8).toString('hex');
 
-    /*
+    /**
      * @description: Implements simplified Breadth-first search recursive 
      *               algorithm to traverse project tree
      *               - Initial traversal through project tree (no .git/.vsc subdirectory)
@@ -187,7 +190,7 @@ function VCS(sourceRoot) {
 
 }
 
-/*
+/**
  * @description: Checkout a repository. 
  *               Clone files from the source directory to the target directory.
  *               Create checkout manifest in the source directory..
@@ -240,7 +243,7 @@ VCS.prototype.checkout = function (targetRoot) {
     new VCS(targetRoot).init(); //Initalize the target directory
 }
 
-/*
+/**
  * @description: Checkin a repository. 
  *               Clone files from the source directory to the target directory.
  *               Create checkout manifest in the source directory..
@@ -295,7 +298,7 @@ VCS.prototype.checkin = function (sourceRoot) {
     }
 }
 
-/*
+/**
  * @description: Get manifests by type. Sorted by creation date. 
  * @param {Number} option 0 for commits, 1 for checkouts, 2 for checkins, and 3 for all.
  */
@@ -314,7 +317,7 @@ VCS.prototype.get = function (option) {
     }
 }
 
-/*
+/**
  * @description: Update a commit. 
  * @param {String} id Unique identifier of a commit.
  * @param {String} field  Field to modifiy. It can be "author", "description", "tag", and "value"
@@ -324,9 +327,14 @@ VCS.prototype.updateManifest = function (id, field, value) {
     this.manifest.updateManifest(id, field, value);
 }
 
+/**
+ * @description: Perform a merge out by gathering necessary information for merging.
+ * @param target the target directory which to merge into this source
+ */
 VCS.prototype.mergeOut = function (target) {
 
     //Finding manifests of granparent, source, target
+    removeDirectory(path.join(this.sourceRoot, ".psa/.mergeSpace"));
     let sourceManifests = this.manifest.getAll();
     let targetManifests = new VCS(target).manifest.getAll();
     let latestSourceManifest = sourceManifests.reverse().find(e => {
@@ -427,7 +435,8 @@ VCS.prototype.mergeOut = function (target) {
                 mergesData.push({
                     mergeType: mergeType,
                     source: (temp.fileSource) ? temp.fileSource : null,
-                    target: (temp.fileTarget) ? temp.fileTarget : null
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: "Target"
                 })
             } else if (nameOfFileGrandpranet.toString().substring(0, nameOfFileGrandpranet.length - 3) === nameOfFileTarget.toString().substring(0, nameOfFileTarget.length - 3)) {
                 let mergeType = "Source"
@@ -442,13 +451,15 @@ VCS.prototype.mergeOut = function (target) {
                 mergesData.push({
                     mergeType: mergeType,
                     source: (temp.fileSource) ? temp.fileSource : null,
-                    target: (temp.fileTarget) ? temp.fileTarget : null
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: "Source"
                 })
             } else {
                 mergesData.push({
                     mergeType: "Conflict",
                     source: (temp.fileSource) ? temp.fileSource : null,
-                    target: (temp.fileTarget) ? temp.fileTarget : null
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: null
 
                 })
             }
@@ -457,20 +468,67 @@ VCS.prototype.mergeOut = function (target) {
         //Nested down the directory
         let directories = files.filter(value => value.isDirectory());
         directories.forEach(value => formMergeData(path.join(p, value.name)))
-
-
-
-
     }
     formMergeData(path.join(this.sourceRoot, ".psa/.mergeSpace/"))
 
-    fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
-        recursive: true
+    // fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
+    //     recursive: true
+    // });
+    return mergesData
+}
+
+/**
+ * @description Given that the mergeData provided is correct, perform a merge in function
+ * @param {String} target the target directory in which to merge into this source.
+ * @param {Object} mergeData the merge configuration
+ */
+VCS.prototype.mergeIn = function (target, mergeData) {
+    let mergeData = JSON.parse(fs.readFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json")));
+
+    mergeData.forEach((value) => {
+        let hasMergeTypeExist = value.mergeType.split('-')[0] === "Conflict" || value.mergeType.split('-')[0] === "Source" || value.mergeType.split('-')[0] === "Target";
+        let hasSource = (value.source === null) ? true : fs.existsSync(value.source);
+        let hasTarget = (value.target === null) ? true : fs.existsSync(value.target);
+        let hasChoice = value.choice === "Source" || value.choice === "Target";
+
+        if (!hasMergeTypeExist || !hasSource || !hasTarget || !hasChoice) {
+            throw new Error("Incomplete merge data");
+        }
+
+
+        if (value.choice === "Target") {
+            if (value.target === null) {
+                let destination = path.parse(path.join(...(path.join(...value.source.split(".psa"))).split(".mergeSpace"))).dir;
+                fs.unlinkSync(destination);
+            } else {
+                let destination = path.parse(path.join(...(path.join(...value.target.split(".psa"))).split(".mergeSpace"))).dir;
+                fs.copyFileSync(value.target, destination);
+            }
+        }
+    })
+
+    removeDirectory(path.join(this.sourceRoot, ".psa/.mergeSpace"));
+    new VCS(this.sourceRoot).commit()
+}
+
+/**
+ * Recursively remove everything in a directory
+ * @param {String} directory directory to remove
+ */
+let removeDirectory = (directory) => {
+    let directoryContent = fs.readdirSync(directory, {
+        withFileTypes: true
     });
+    directoryContent.forEach(content => {
+        if (content.isFile()) {
+            fs.unlinkSync(path.join(directory, content.name))
+        } else {
+            removeDirectory(path.join(directory, content.name))
+        }
+    })
+    if (fs.existsSync(directory)) {
+        fs.rmdirSync(directory);
 
+    }
 }
-VCS.prototype.mergeIn = function (target) {
-
-}
-
 module.exports = VCS;

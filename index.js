@@ -157,11 +157,31 @@ app.post('/get/manifests', (req, res, next) => {
     }
 })
 
+/**
+ * Merge out rounte. It will return merging configuration.
+ */
 app.post('/mergeout', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
         let targetDirectory = req.body.targetDirectory;
-        new VCS(sourceDirectory).mergeOut(targetDirectory)
+        let mergeData = new VCS(sourceDirectory).mergeOut(targetDirectory);
+        res.send(mergeData);
+        res.status(200).end();
+    } catch (err) {
+        console.log(err);
+        res.status(400).end();
+    }
+})
+
+/**
+ * Merge in route. Must provide the merge configuration.
+ */
+app.post('/mergein', (req, res, next) => {
+    try {
+        let sourceDirectory = req.body.sourceDirectory;
+        let targetDirectory = req.body.targetDirectory;
+        let mergeData = req.body.mergeData;
+        new VCS(sourceDirectory).mergeIn(targetDirectory, mergeData)
         res.status(200).end();
     } catch (err) {
         console.log(err);
