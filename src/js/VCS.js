@@ -13,7 +13,7 @@ const manifest = require('./manifest'); // For tracking
 const crypto = require('crypto'); // Generating commit Id
 const path = require('path'); //use to resolve and normalize path to an absolute value
 
-/*
+/**
  * @description: Initialization method. 
  *               Creates vcs hidden subdirectory for tracking changes
  *               Copies main directory contents into vcs and creates artifact structure
@@ -46,7 +46,7 @@ VCS.prototype.init = function () {
     });
 };
 
-/*
+/**
  * @description: Commit method. 
  *               Creates vcs hidden subdirectory for tracking changes
  */
@@ -71,14 +71,17 @@ VCS.prototype.commit = function () {
 };
 
 
-
+/**
+ * Default constructor of VCS
+ * @param {String} sourceRoot the source directory
+ */
 function VCS(sourceRoot) {
     this.sourceRoot = sourceRoot;
     this.vcsFileName = '.psa'; // VSC file [target] name
     this.manifest = new manifest(this.sourceRoot + '/' + this.vcsFileName + '/');
     this.commitId = crypto.randomBytes(8).toString('hex');
 
-    /*
+    /**
      * @description: Implements simplified Breadth-first search recursive 
      *               algorithm to traverse project tree
      *               - Initial traversal through project tree (no .git/.vsc subdirectory)
@@ -187,7 +190,7 @@ function VCS(sourceRoot) {
 
 }
 
-/*
+/**
  * @description: Checkout a repository. 
  *               Clone files from the source directory to the target directory.
  *               Create checkout manifest in the source directory..
@@ -240,7 +243,7 @@ VCS.prototype.checkout = function (targetRoot) {
     new VCS(targetRoot).init(); //Initalize the target directory
 }
 
-/*
+/**
  * @description: Checkin a repository. 
  *               Clone files from the source directory to the target directory.
  *               Create checkout manifest in the source directory..
@@ -295,7 +298,7 @@ VCS.prototype.checkin = function (sourceRoot) {
     }
 }
 
-/*
+/**
  * @description: Get manifests by type. Sorted by creation date. 
  * @param {Number} option 0 for commits, 1 for checkouts, 2 for checkins, and 3 for all.
  */
@@ -314,7 +317,7 @@ VCS.prototype.get = function (option) {
     }
 }
 
-/*
+/**
  * @description: Update a commit. 
  * @param {String} id Unique identifier of a commit.
  * @param {String} field  Field to modifiy. It can be "author", "description", "tag", and "value"
@@ -324,4 +327,208 @@ VCS.prototype.updateManifest = function (id, field, value) {
     this.manifest.updateManifest(id, field, value);
 }
 
+/**
+ * @description: Perform a merge out by gathering necessary information for merging.
+ * @param target the target directory which to merge into this source
+ */
+VCS.prototype.mergeOut = function (target) {
+
+    //Finding manifests of granparent, source, target
+    removeDirectory(path.join(this.sourceRoot, ".psa/.mergeSpace"));
+    let sourceManifests = this.manifest.getAll();
+    let targetManifests = new VCS(target).manifest.getAll();
+    let latestSourceManifest = sourceManifests.reverse().find(e => {
+        return e.command === "commit";
+    });
+    let latestTargetManifest = targetManifests.reverse().find(e => {
+        return e.command === "commit";
+    });
+    let index = -1;
+    let c = sourceManifests.find((e, i) => {
+        if ((e.command === "checkin" || e.command === "checkout") && (e.argument.source === path.resolve(target) || e.argument.target === path.resolve(target))) {
+            index = i;
+            return e;
+        }
+    })
+    if (index === -1) {
+        throw new Error("Grandparent manifest can't be found.")
+    }
+    let grandparentManifest = (c.command === "checkin") ? sourceManifests[index - 1] : sourceManifests[index + 1];
+
+
+    //Copy manifests related to the above manifests
+    grandparentManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MG" + parsedPath.ext));
+    })
+
+    latestSourceManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MR" + parsedPath.ext));
+    })
+
+    latestTargetManifest.values.forEach((sourceFile, index) => {
+        let parsedPath = path.parse(sourceFile);
+        let targetDir = path.normalize(path.join(this.sourceRoot, ".psa/.mergeSpace/", parsedPath.dir.split(".psa")[1]));
+        if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, {
+                recursive: true
+            });
+        }
+        fs.copyFileSync(sourceFile, path.join(targetDir, parsedPath.name + "_MT" + parsedPath.ext));
+    })
+
+
+    //Generate merge documents
+    let mergesData = []
+
+    function formMergeData(p) {
+        let files = fs.readdirSync(p, {
+            withFileTypes: true
+        });
+
+
+        let mergeFragments = files.filter(value => value.isFile());
+
+        let temp = {}
+
+        mergeFragments.forEach(value => {
+            let fileData = path.parse(path.join(p, value.name))
+            if (fileData.name.endsWith("_MG")) {
+                temp.fileGrandparent = path.join(p, value.name)
+            } else if (fileData.name.endsWith("_MR")) {
+                temp.fileSource = path.join(p, value.name);
+            } else if (fileData.name.endsWith("_MT")) {
+                temp.fileTarget = path.join(p, value.name);
+            }
+        })
+
+        let nameOfFileGrandpranet = (temp.fileGrandparent != undefined) ? path.parse(temp.fileGrandparent).name : String(undefined);
+        let nameOfFileSource = (temp.fileSource != undefined) ? path.parse(temp.fileSource).name : String(undefined);
+        let nameOfFileTarget = (temp.fileTarget != undefined) ? path.parse(temp.fileTarget).name : String(undefined);
+
+
+        if (nameOfFileSource.toString().substring(0, nameOfFileSource.length - 3) !== nameOfFileTarget.toString().substring(0, nameOfFileTarget.length - 3)) {
+
+            if (nameOfFileGrandpranet.toString().substring(0, nameOfFileGrandpranet.length - 3) === nameOfFileSource.toString().substring(0, nameOfFileSource.length - 3)) {
+                let mergeType = "Target"
+                if (temp.fileTarget === undefined) {
+                    mergeType += "-Remove"
+                } else if (temp.fileSource === undefined) {
+                    mergeType += "-Add"
+                } else {
+                    mergeType += "-Update"
+                }
+
+                mergesData.push({
+                    mergeType: mergeType,
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: "Target"
+                })
+            } else if (nameOfFileGrandpranet.toString().substring(0, nameOfFileGrandpranet.length - 3) === nameOfFileTarget.toString().substring(0, nameOfFileTarget.length - 3)) {
+                let mergeType = "Source"
+                if (temp.fileSource === undefined) {
+                    mergeType += "-Remove"
+                } else if (temp.fileTarget === undefined) {
+                    mergeType += "-Add"
+                } else {
+                    mergeType += "-Update"
+                }
+
+                mergesData.push({
+                    mergeType: mergeType,
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: "Source"
+                })
+            } else {
+                mergesData.push({
+                    mergeType: "Conflict",
+                    source: (temp.fileSource) ? temp.fileSource : null,
+                    target: (temp.fileTarget) ? temp.fileTarget : null,
+                    choice: null
+
+                })
+            }
+        }
+
+        //Nested down the directory
+        let directories = files.filter(value => value.isDirectory());
+        directories.forEach(value => formMergeData(path.join(p, value.name)))
+    }
+    formMergeData(path.join(this.sourceRoot, ".psa/.mergeSpace/"))
+
+    // fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
+    //     recursive: true
+    // });
+    return mergesData
+}
+
+/**
+ * @description Given that the mergeData provided is correct, perform a merge in function
+ * @param {String} target the target directory in which to merge into this source.
+ * @param {Object} mergeData the merge configuration
+ */
+VCS.prototype.mergeIn = function (target, mergeData) {
+    let mergeData = JSON.parse(fs.readFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json")));
+
+    mergeData.forEach((value) => {
+        let hasMergeTypeExist = value.mergeType.split('-')[0] === "Conflict" || value.mergeType.split('-')[0] === "Source" || value.mergeType.split('-')[0] === "Target";
+        let hasSource = (value.source === null) ? true : fs.existsSync(value.source);
+        let hasTarget = (value.target === null) ? true : fs.existsSync(value.target);
+        let hasChoice = value.choice === "Source" || value.choice === "Target";
+
+        if (!hasMergeTypeExist || !hasSource || !hasTarget || !hasChoice) {
+            throw new Error("Incomplete merge data");
+        }
+
+
+        if (value.choice === "Target") {
+            if (value.target === null) {
+                let destination = path.parse(path.join(...(path.join(...value.source.split(".psa"))).split(".mergeSpace"))).dir;
+                fs.unlinkSync(destination);
+            } else {
+                let destination = path.parse(path.join(...(path.join(...value.target.split(".psa"))).split(".mergeSpace"))).dir;
+                fs.copyFileSync(value.target, destination);
+            }
+        }
+    })
+
+    removeDirectory(path.join(this.sourceRoot, ".psa/.mergeSpace"));
+    new VCS(this.sourceRoot).commit()
+}
+
+/**
+ * Recursively remove everything in a directory
+ * @param {String} directory directory to remove
+ */
+let removeDirectory = (directory) => {
+    let directoryContent = fs.readdirSync(directory, {
+        withFileTypes: true
+    });
+    directoryContent.forEach(content => {
+        if (content.isFile()) {
+            fs.unlinkSync(path.join(directory, content.name))
+        } else {
+            removeDirectory(path.join(directory, content.name))
+        }
+    })
+    if (fs.existsSync(directory)) {
+        fs.rmdirSync(directory);
+
+    }
+}
 module.exports = VCS;
