@@ -11,13 +11,15 @@
  */
 const express = require('express');
 const path = require('path');
-const VCS = require('./src/js/VCS')
+const VCS = require('./src/js/VCS') 
+const cors = require('cors')
 
 /**
  * Initialize variables.
  */
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use('/css', express.static(path.join(__dirname, "src/frontend/css")));
 app.use('/js', express.static(path.join(__dirname, "src/frontend/js")));
 app.use('/html', express.static(path.join(__dirname, "src/frontend/html")));
@@ -192,5 +194,5 @@ app.post('/mergein', (req, res, next) => {
 /**
  * Port to listen to.
  */
-const port = process.env.port || 3000;
+const port = process.env.port || 3001;
 app.listen(port, () => console.log(`Listen to port ${port}`));
