@@ -53,6 +53,11 @@ app.post('/create', (req, res, next) => {
 app.post('/commit', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
+        try{
+            new VCS(sourceDirectory).init();
+        }catch(err){
+            console.log(err);
+        }
         new VCS(sourceDirectory).commit();
         res.status(200).end();
     } catch (err) {

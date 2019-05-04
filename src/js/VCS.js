@@ -19,6 +19,9 @@ const path = require('path'); //use to resolve and normalize path to an absolute
  *               Copies main directory contents into vcs and creates artifact structure
  */
 VCS.prototype.init = function () {
+    if(!fs.existsSync(this.sourceRoot)){
+        throw new Error('Directory doesn\'t exist.')
+    }
     fs.readdir(this.sourceRoot, {
         withFileTypes: true
     }, (error, directoryContents) => {
@@ -51,7 +54,9 @@ VCS.prototype.init = function () {
  *               Creates vcs hidden subdirectory for tracking changes
  */
 VCS.prototype.commit = function () {
-
+    if(!fs.existsSync(this.sourceRoot)){
+        throw new Error('Directory doesn\'t exist.')
+    }
     fs.readdir(this.sourceRoot, {
         withFileTypes: true
     }, (error, directoryContents) => {
