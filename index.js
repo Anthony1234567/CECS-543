@@ -20,9 +20,7 @@ const cors = require('cors')
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use('/css', express.static(path.join(__dirname, "src/frontend/css")));
-app.use('/js', express.static(path.join(__dirname, "src/frontend/js")));
-app.use('/html', express.static(path.join(__dirname, "src/frontend/html")));
+app.use(express.static(path.join(__dirname, 'src/build')));
 
 const debugMode = true;
 
@@ -31,9 +29,7 @@ const debugMode = true;
  * Homepage routes. 
  */
 app.get('/', (req, res, next) => {
-    res.sendFile('src/frontend/html/input.html', {
-        root: __dirname
-    });
+    res.sendFile(path.join(__dirname, 'src/build', 'index.html'));
 })
 
 /**

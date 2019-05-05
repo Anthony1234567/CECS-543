@@ -512,9 +512,9 @@ VCS.prototype.mergeOut = function (target) {
     }
     formMergeData(path.join(this.sourceRoot, ".psa/.mergeSpace/"))
 
-    // fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
-    //     recursive: true
-    // });
+    fs.writeFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json"), JSON.stringify(mergesData, null, 4), {
+        recursive: true
+    });
     return mergesData
 }
 
@@ -524,7 +524,7 @@ VCS.prototype.mergeOut = function (target) {
  * @param {Object} mergeData the merge configuration
  */
 VCS.prototype.mergeIn = function (target, mergeData) {
-    let mergeData = JSON.parse(fs.readFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json")));
+    //let mergeData = JSON.parse(fs.readFileSync(path.join(this.sourceRoot, ".psa/.mergeSpace/MergeData.json")));
 
     mergeData.forEach((value) => {
         let hasMergeTypeExist = value.mergeType.split('-')[0] === "Conflict" || value.mergeType.split('-')[0] === "Source" || value.mergeType.split('-')[0] === "Target";
