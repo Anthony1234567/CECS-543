@@ -107,6 +107,9 @@ function VCS(sourceRoot) {
         // Can ensure all subsequent calls will be made on directories 
         // thanks to fs.readdir option parameter which can help 
         // get file types along with contents.
+        if(!fs.existsSync(sourceRoot)){
+            throw new Error("Directory does not exist.")
+        }
         fs.readdir(sourceRoot, {
             withFileTypes: true
         }, (error, directoryContents) => {
@@ -215,6 +218,13 @@ VCS.prototype.checkout = function (targetRoot) {
      */
     let cloneDirectory = function (sourceRoot, targetRoot) {
 
+        if(!fs.existsSync(sourceRoot)){
+            throw new Error("Directory does not exist.")
+        }
+        if(!fs.existsSync(targetRoot)){
+            throw new Error("Directory does not exist.")
+        }
+
         //Read a directory
         fs.readdir(sourceRoot, {
             withFileTypes: true
@@ -261,13 +271,16 @@ VCS.prototype.checkin = function (sourceRoot) {
         throw new Error("Can't checkin to the same folder.")
     }
 
+    if(!fs.existsSync(sourceRoot)){
+        throw new Error("Directory does not exist.")
+    }
+
     /**
      * Clone directory. It will only copy files do not exist in the target directory. 
      * @param {String} sourceRoot Source directory
      * @param {String} targetRoot Target directory
      */
     let cloneDirectory = function (sourceRoot, targetRoot) {
-
         //Read a directory
         fs.readdir(sourceRoot, {
             withFileTypes: true
@@ -376,6 +389,11 @@ VCS.prototype.mergeOut = function (target) {
         }
     }
 
+    if(latestTargetManifest===undefined || latestSourceManifest ===undefined || grandparentManifest ===undefined){
+        throw new Error ('Unable to find neccessary manifests.');
+    }
+
+
     //Copy manifests related to the above manifests
     grandparentManifest.values.forEach((sourceFile, index) => {
         let parsedPath = path.parse(sourceFile);
@@ -415,6 +433,9 @@ VCS.prototype.mergeOut = function (target) {
     let mergesData = []
 
     function formMergeData(p) {
+        if(!fs.existsSync(p)){
+            throw new Error("Directory does not exist.")
+        }
         let files = fs.readdirSync(p, {
             withFileTypes: true
         });

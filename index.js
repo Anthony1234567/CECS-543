@@ -11,7 +11,7 @@
  */
 const express = require('express');
 const path = require('path');
-const VCS = require('./src/js/VCS') 
+const VCS = require('./src/js/VCS')
 const cors = require('cors')
 
 /**
@@ -23,6 +23,8 @@ app.use(cors());
 app.use('/css', express.static(path.join(__dirname, "src/frontend/css")));
 app.use('/js', express.static(path.join(__dirname, "src/frontend/js")));
 app.use('/html', express.static(path.join(__dirname, "src/frontend/html")));
+
+const debugMode = true;
 
 
 /**
@@ -43,6 +45,9 @@ app.post('/create', (req, res, next) => {
         new VCS(sourceDirectory).init();
         res.status(201).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -53,14 +58,17 @@ app.post('/create', (req, res, next) => {
 app.post('/commit', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
-        try{
+        try {
             new VCS(sourceDirectory).init();
-        }catch(err){
+        } catch (err) {
             console.log(err);
         }
         new VCS(sourceDirectory).commit();
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -75,6 +83,9 @@ app.post('/checkout', (req, res, next) => {
         new VCS(sourceDirectory).checkout(targetDirectory)
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 });
@@ -84,11 +95,15 @@ app.post('/checkout', (req, res, next) => {
  */
 app.post('/checkin', (req, res, next) => {
     try {
+        console.log("checking in...")
         let sourceDirectory = req.body.sourceDirectory;
         let targetDirectory = req.body.targetDirectory;
-        new VCS(targetDirectory).checkin(sourceDirectory)
+        new VCS(sourceDirectory).checkin(targetDirectory)
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 });
@@ -103,6 +118,9 @@ app.post('/get/commits', (req, res, next) => {
         res.send(new VCS(sourceDirectory).get(0));
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -116,6 +134,9 @@ app.post('/get/checkins', (req, res, next) => {
         res.send(new VCS(sourceDirectory).get(2));
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -129,6 +150,9 @@ app.post('/get/checkouts', (req, res, next) => {
         res.send(new VCS(sourceDirectory).get(1));
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -145,6 +169,9 @@ app.post('/update', (req, res, next) => {
         new VCS(sourceDirectory).updateManifest(id, field, value);
         res.status(200).end();
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -157,9 +184,12 @@ app.post('/get/manifests', (req, res, next) => {
     try {
         let sourceDirectory = req.body.sourceDirectory;
         res.send(new VCS(sourceDirectory).get(3));
-        req.status(200).end();
+        res.status(200).end();
 
     } catch (err) {
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -175,7 +205,9 @@ app.post('/mergeout', (req, res, next) => {
         res.send(mergeData);
         res.status(200).end();
     } catch (err) {
-        console.log(err);
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
@@ -191,7 +223,9 @@ app.post('/mergein', (req, res, next) => {
         new VCS(sourceDirectory).mergeIn(targetDirectory, mergeData)
         res.status(200).end();
     } catch (err) {
-        console.log(err);
+        if(debugMode){
+            console.log(err);
+        }
         res.status(400).end();
     }
 })
