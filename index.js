@@ -12,14 +12,12 @@
 const express = require('express');
 const path = require('path');
 const VCS = require('./src/js/VCS')
-const cors = require('cors')
 
 /**
  * Initialize variables.
  */
 const app = express();
 app.use(express.json());
-app.use(cors());
 app.use(express.static(path.join(__dirname, 'src/build')));
 
 const debugMode = true;
@@ -229,5 +227,5 @@ app.post('/mergein', (req, res, next) => {
 /**
  * Port to listen to.
  */
-const port = process.env.port || 3001;
+const port = process.env.port || 3000;
 app.listen(port, () => console.log(`Listen to port ${port}`));
