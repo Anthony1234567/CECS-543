@@ -360,6 +360,21 @@ VCS.prototype.mergeOut = function (target) {
     }
     let grandparentManifest = (c.command === "checkin") ? sourceManifests[index - 1] : sourceManifests[index + 1];
 
+    if(c.command==='checkin'){
+        for (let i =index; i>=0;i--){
+            if(sourceManifests[i].command==="commit"){
+                grandparentManifest=sourceManifests[i];
+                break;
+            }
+        }
+    }else{
+        for (let i =index; i<sourceManifests.length;i++){
+            if(sourceManifests[i].command==="commit"){
+                grandparentManifest=sourceManifests[i];
+                break;
+            }
+        }
+    }
 
     //Copy manifests related to the above manifests
     grandparentManifest.values.forEach((sourceFile, index) => {
@@ -521,19 +536,19 @@ VCS.prototype.mergeIn = function (target, mergeData) {
  * @param {String} directory directory to remove
  */
 let removeDirectory = (directory) => {
-    let directoryContent = fs.readdirSync(directory, {
-        withFileTypes: true
-    });
-    directoryContent.forEach(content => {
-        if (content.isFile()) {
-            fs.unlinkSync(path.join(directory, content.name))
-        } else {
-            removeDirectory(path.join(directory, content.name))
-        }
-    })
+    
     if (fs.existsSync(directory)) {
+        let directoryContent = fs.readdirSync(directory, {
+            withFileTypes: true
+        });
+        directoryContent.forEach(content => {
+            if (content.isFile()) {
+                fs.unlinkSync(path.join(directory, content.name))
+            } else {
+                removeDirectory(path.join(directory, content.name))
+            }
+        })
         fs.rmdirSync(directory);
-
     }
 }
 module.exports = VCS;
